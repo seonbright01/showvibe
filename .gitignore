@@ -51,3 +51,6 @@ docs/
 # pipeline data dumps (candidate snapshots, not source)
 tmp/*
 !tmp/.gitkeep
+
+# supabase CLI cache (contains DB password in pooler-url — NEVER track)
+supabase/.temp/
