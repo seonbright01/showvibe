@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude code (local-only — contains personal paths or internal context)
+.claude/settings.local.json
+.claude/launch.json
+.claude/agents/
+
+# internal planning docs (kept local, not for public repo)
+docs/
+
+# pipeline data dumps (candidate snapshots, not source)
+tmp/*
+!tmp/.gitkeep

@@ -6,21 +6,43 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "pipeline:collect": "tsx scripts/pipeline/collect.ts",
+    "pipeline:classify": "tsx scripts/pipeline/classify.ts",
+    "pipeline:screenshot": "tsx scripts/pipeline/screenshot.ts",
+    "pipeline:article": "tsx scripts/pipeline/article.ts",
+    "pipeline:monitor": "tsx scripts/pipeline/monitor.ts",
+    "pipeline:all": "tsx scripts/pipeline/run-all.ts",
+    "pipeline:classify-export": "tsx scripts/pipeline/export-classify-batch.ts",
+    "pipeline:classify-import": "tsx scripts/pipeline/import-classify-batch.ts",
+    "pipeline:article-export": "tsx scripts/pipeline/export-article-batch.ts",
+    "pipeline:article-import": "tsx scripts/pipeline/import-article-batch.ts",
+    "pipeline:recheck": "tsx scripts/pipeline/recheck.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.92.0",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "next": "16.2.4",
+    "p-queue": "^9.2.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "robots-parser": "^3.0.1",
+    "zod": "^4.4.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.39",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

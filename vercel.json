@@ -1,0 +1,4 @@
+{
+  "framework": "nextjs",
+  "comment": "Cron schedules intentionally omitted — local development phase. To enable production cron, uncomment the crons array in vercel.ts (or add it here) and set CRON_SECRET in Vercel env."
+}

@@ -1,26 +1,133 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* === Base / Surface (Spotify-mood) === */
+  --bg-shell: #000000;        /* outer black gutters between sidebar/main */
+  --bg-base: #0A0A0B;          /* page background — near-black, neutral */
+  --bg-surface: #121215;       /* cards, surfaces */
+  --bg-elevated: #1A1A1F;      /* hover, raised */
+  --bg-input: #22222A;         /* input, chip */
+  --bg-sidebar: #070708;       /* sidebar deep base */
+
+  /* === Stroke / Line === */
+  --stroke: rgba(255, 255, 255, 0.08);
+  --stroke-strong: rgba(255, 255, 255, 0.14);
+
+  /* === Text === */
+  --text-high: #F4F4F5;
+  --text-medium: #A1A1AA;
+  --text-muted: #71717A;
+  --text-dim: #52525B;
+
+  /* === Accent — Coral (sampled from official logo) === */
+  --coral: #E94F3D;
+  --coral-hover: #F26654;
+  --coral-ink: #FFFFFF;
+  --coral-soft: rgba(233, 79, 61, 0.14);
+  --coral-line: rgba(233, 79, 61, 0.4);
+
+  /* === Status === */
+  --status-active: oklch(0.78 0.16 150);   /* green */
+  --status-slow: oklch(0.82 0.16 85);      /* yellow */
+  --status-degraded: oklch(0.74 0.18 45);  /* orange */
+  --status-archived: oklch(0.55 0.01 270); /* neutral */
+  --status-blocked: oklch(0.55 0.14 25);   /* red-muted */
+
+  /* === Source badges === */
+  --src-auto: #A1A1AA;
+  --src-submit: #E94F3D;
+  --src-claim: oklch(0.78 0.14 235);       /* blue check */
+  --src-admin: oklch(0.78 0.16 320);       /* editor's pick — violet */
+
+  /* Legacy alias (backward compatibility for already-written components) */
+  --coral-alpha: var(--coral-soft);
+  --active: var(--status-active);
+  --claimed: var(--src-claim);
+  --warning: var(--status-slow);
+  --error: var(--status-blocked);
+
+  /* === Radii === */
+  --r1: 6px;
+  --r2: 10px;
+  --r3: 14px;
+  --r4: 20px;
+  --r-pill: 999px;
+
+  /* === Elevation === */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --glow-coral: 0 0 0 1px rgba(233, 79, 61, 0.4),
+    0 0 24px rgba(233, 79, 61, 0.25);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-shell: var(--bg-shell);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-input: var(--bg-input);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-stroke: var(--stroke);
+  --color-stroke-strong: var(--stroke-strong);
+  --color-text-high: var(--text-high);
+  --color-text-medium: var(--text-medium);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-coral: var(--coral);
+  --color-coral-hover: var(--coral-hover);
+  --color-coral-ink: var(--coral-ink);
+  --color-coral-soft: var(--coral-soft);
+  --color-coral-line: var(--coral-line);
+  --color-coral-alpha: var(--coral-alpha);
+  --color-active: var(--active);
+  --color-claimed: var(--claimed);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-status-active: var(--status-active);
+  --color-status-slow: var(--status-slow);
+  --color-status-degraded: var(--status-degraded);
+  --color-status-archived: var(--status-archived);
+  --color-status-blocked: var(--status-blocked);
+  --color-src-auto: var(--src-auto);
+  --color-src-submit: var(--src-submit);
+  --color-src-claim: var(--src-claim);
+  --color-src-admin: var(--src-admin);
+  --font-sans: var(--font-pretendard), var(--font-outfit), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-shell);
+  color: var(--text-high);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--coral-soft);
+  color: var(--text-high);
+}
+
+/* Scrollbars — slim, surface-tinted */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: padding-box;
 }

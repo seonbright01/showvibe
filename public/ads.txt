@@ -1,0 +1,6 @@
+# ShowVibe ads.txt — IAB Tech Lab Authorized Digital Sellers
+# https://iabtechlab.com/ads-txt/
+#
+# Replace pub-0000000000000000 with the real AdSense publisher ID
+# once granted by Google AdSense.
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
