@@ -78,6 +78,48 @@ export async function getPostBySlug(
   }
 }
 
+export async function getAllPostsForAdmin(limit = 100): Promise<PostWithAuthor[]> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('posts')
+      .select(POSTS_SELECT)
+      .order('updated_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      logQueryError('getAllPostsForAdmin', error)
+      return []
+    }
+    return ((data ?? []) as unknown as JoinedPostRow[]).map(shapeRow)
+  } catch (err) {
+    logQueryError('getAllPostsForAdmin', err)
+    return []
+  }
+}
+
+export async function getPostByIdForAdmin(id: string): Promise<PostWithAuthor | null> {
+  if (!id) return null
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('posts')
+      .select(POSTS_SELECT)
+      .eq('id', id)
+      .maybeSingle()
+
+    if (error) {
+      logQueryError('getPostByIdForAdmin', error)
+      return null
+    }
+    if (!data) return null
+    return shapeRow(data as unknown as JoinedPostRow)
+  } catch (err) {
+    logQueryError('getPostByIdForAdmin', err)
+    return null
+  }
+}
+
 export async function getPostCategories(): Promise<string[]> {
   try {
     const supabase = await createClient()

@@ -3,6 +3,10 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import {
+  isAvatarPresetId,
+  presetIdToAvatarUrl,
+} from '@/lib/avatars/presets'
 
 type ActionResult =
   | { error: string }
@@ -74,10 +78,15 @@ export async function signUpWithEmail(
   const email = String(formData.get('email') ?? '')
   const password = String(formData.get('password') ?? '')
   const name = String(formData.get('name') ?? '')
+  const avatarRaw = String(formData.get('avatar') ?? '')
 
   if (!email || !password) {
     return { error: '이메일과 비밀번호를 입력해주세요.' }
   }
+
+  const avatarUrl = isAvatarPresetId(avatarRaw)
+    ? presetIdToAvatarUrl(avatarRaw)
+    : null
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
@@ -85,7 +94,10 @@ export async function signUpWithEmail(
     password,
     options: {
       emailRedirectTo: `${getSiteUrl()}/auth/callback`,
-      data: { full_name: name },
+      data: {
+        full_name: name,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+      },
     },
   })
   if (error) return { error: error.message }

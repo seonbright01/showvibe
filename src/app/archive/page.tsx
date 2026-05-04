@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { ProjectCard } from "@/components/project/ProjectCard";
-import {
-  MOCK_SITES,
-  MOCK_ANALYSES,
-  MOCK_MEDIA,
-  MOCK_USERS,
-} from "@/data/mock";
-import type { Site } from "@/types";
+import { getArchivedSites } from "@/lib/sites/queries";
+import { getSessionUser } from "@/lib/auth/guards";
+import { getLikeStatesForSites } from "@/lib/social/queries";
 
 export const metadata: Metadata = {
   title: "Archive — ShowVibe",
@@ -16,31 +11,19 @@ export const metadata: Metadata = {
     "사라졌지만 기록할 가치가 있는 바이브코딩 프로젝트들. ShowVibe Archive에서 만나보세요.",
 };
 
-function buildArchivedView(): Site[] {
-  const realArchived = MOCK_SITES.filter((s) => s.status === "archived");
-  const candidatesForOverride = MOCK_SITES.filter(
-    (s) => s.status !== "archived"
-  ).slice(0, 6);
+export const dynamic = "force-dynamic";
 
-  const overridden: Site[] = candidatesForOverride.map((s) => ({
-    ...s,
-    status: "archived" as const,
-  }));
+export default async function ArchivePage() {
+  const [sessionUser, archived] = await Promise.all([
+    getSessionUser(),
+    getArchivedSites(60),
+  ]);
 
-  return [...realArchived, ...overridden];
-}
-
-function getEnrichedSiteData(site: Site) {
-  const analysis = MOCK_ANALYSES.find((a) => a.siteId === site.id);
-  const media = MOCK_MEDIA.find((m) => m.siteId === site.id);
-  const maker = site.claimedByUserId
-    ? MOCK_USERS.find((u) => u.id === site.claimedByUserId)
-    : undefined;
-  return { site, analysis, media, maker };
-}
-
-export default function ArchivePage() {
-  const archived = buildArchivedView();
+  const isAuthenticated = Boolean(sessionUser);
+  const likeStates = await getLikeStatesForSites(
+    archived.map((e) => e.site.id),
+    sessionUser?.id ?? null,
+  );
 
   return (
     <AppShell>
@@ -70,12 +53,35 @@ export default function ArchivePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {archived.map((site) => {
-              const enriched = getEnrichedSiteData(site);
-              return <ProjectCard key={site.id} {...enriched} />;
-            })}
-          </div>
+          {archived.length === 0 ? (
+            <div className="rounded-xl border border-stroke bg-bg-surface px-6 py-16 text-center">
+              <p className="text-base font-medium text-text-high mb-2 font-[var(--font-outfit)]">
+                아직 Archive 항목이 없습니다
+              </p>
+              <p className="text-sm text-text-medium max-w-md mx-auto leading-relaxed">
+                health 모니터가 사이트의 응답 불가 상태를 감지하면 자동으로
+                Archive로 이동합니다.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {archived.map((enriched) => {
+                const lk = likeStates[enriched.site.id] ?? {
+                  count: 0,
+                  isLiked: false,
+                };
+                return (
+                  <ProjectCard
+                    key={enriched.site.id}
+                    {...enriched}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
     </AppShell>

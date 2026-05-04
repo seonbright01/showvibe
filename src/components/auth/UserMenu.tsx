@@ -5,6 +5,8 @@ import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import { createClient, hasSupabaseEnv } from '@/lib/supabase/client'
 import { signOut } from '@/lib/auth/actions'
+import { parseAvatarUrl } from '@/lib/avatars/presets'
+import { AvatarSvg } from '@/components/ui/AvatarSvg'
 
 interface UserProfile {
   id: string
@@ -20,6 +22,17 @@ function getInitial(name: string | null | undefined, email: string | null | unde
 }
 
 function Avatar({ url, initial, size = 32 }: { url: string | null; initial: string; size?: number }) {
+  const presetId = parseAvatarUrl(url)
+  if (presetId) {
+    return (
+      <div
+        className="rounded-full overflow-hidden border border-stroke"
+        style={{ width: size, height: size }}
+      >
+        <AvatarSvg presetId={presetId} size={size} />
+      </div>
+    )
+  }
   if (url) {
     return (
       // eslint-disable-next-line @next/next/no-img-element

@@ -6,6 +6,8 @@ import AppShell from '@/components/layout/AppShell'
 const ADMIN_NAV = [
   { href: '/admin/review', label: 'Review Queue', icon: '⌨' },
   { href: '/admin/editors-pick', label: "Editor's Pick", icon: '★' },
+  { href: '/admin/posts', label: 'Posts', icon: '📰' },
+  { href: '/admin/members', label: 'Members', icon: '👥' },
   { href: '/admin/takedowns', label: 'Takedowns', icon: '⚠' },
   { href: '/admin/comments', label: 'Comments', icon: '💬' },
   { href: '/admin/health', label: 'Site Health', icon: '◉' },

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { signUpWithEmail } from '@/lib/auth/actions'
+import { AvatarPicker } from './AvatarPicker'
 
 type ActionResult =
   | { error: string }
@@ -18,6 +19,8 @@ export function SignUpForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      <AvatarPicker />
+
       <div className="flex flex-col gap-1.5">
         <label htmlFor="signup-name" className="text-xs text-text-medium font-medium">
           이름

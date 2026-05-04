@@ -1,8 +1,5 @@
 'use client'
 
-import Link from 'next/link'
-import { ShowVibeLogo } from '@/components/ui/Logo'
-
 export const TOPBAR_HEIGHT = 56
 
 interface TopBarProps {
@@ -35,28 +32,17 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
       className="sticky top-0 z-40 flex items-center gap-3 border-b border-stroke bg-bg-base/85 px-4 backdrop-blur-md md:gap-4 md:px-6"
       style={{ height: TOPBAR_HEIGHT }}
     >
-      <div className="flex flex-1 items-center">
-        {onOpenMobileNav && (
-          <button
-            type="button"
-            onClick={onOpenMobileNav}
-            aria-label="메뉴 열기"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-text-high hover:bg-bg-elevated transition-colors lg:hidden"
-          >
-            <HamburgerIcon />
-          </button>
-        )}
-      </div>
-
-      <Link
-        href="/"
-        aria-label="ShowVibe — Home"
-        className="inline-flex shrink-0 items-center"
-      >
-        <ShowVibeLogo width={140} variant="white" priority />
-      </Link>
-
-      <div className="flex flex-1" aria-hidden />
+      {onOpenMobileNav && (
+        <button
+          type="button"
+          onClick={onOpenMobileNav}
+          aria-label="메뉴 열기"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-text-high hover:bg-bg-elevated transition-colors lg:hidden"
+        >
+          <HamburgerIcon />
+        </button>
+      )}
+      <div className="flex-1" aria-hidden />
     </header>
   )
 }
