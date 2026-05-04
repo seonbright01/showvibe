@@ -35,7 +35,11 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   }
   const data = parse.data
 
-  if (data.turnstileToken) {
+  // 보안: Turnstile 토큰 필수 검증 (sitekey 설정 시)
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!data.turnstileToken) {
+      return { ok: false, error: 'Captcha 인증을 완료해주세요' }
+    }
     const ok = await verifyTurnstile(data.turnstileToken)
     if (!ok) return { ok: false, error: 'Captcha 인증 실패' }
   }
@@ -59,6 +63,9 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
     return { ok: false, error: '이미 등록된 프로젝트입니다' }
   }
 
+  // 보안: isCreator 플래그를 신뢰하지 않음. 등록 시점엔 누구든 'creator_submitted'
+  // 출처로만 기록되고 소유권은 부여하지 않음. 클레임은 /claim 인증 플로우(meta tag,
+  // DNS, GitHub OAuth 등)를 통해서만. 이전엔 isCreator=true로 임의 사이트 소유권 선점 가능.
   const { data: inserted, error } = (await db
     .from('sites')
     .insert({
@@ -66,12 +73,12 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
       url: data.url,
       normalized_url: normalizedUrl,
       description: data.description || null,
-      source_type: data.isCreator ? 'creator_submitted' : 'auto_collected',
+      source_type: 'creator_submitted',
       source_platform: data.builtWith || null,
       visibility: 'unlisted',
       status: 'unknown',
-      claimed_by_user_id: data.isCreator ? user.id : null,
-      is_claimed: data.isCreator,
+      claimed_by_user_id: null,
+      is_claimed: false,
     })
     .select('id')
     .single()) as {

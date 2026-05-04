@@ -25,7 +25,11 @@ export async function submitTakedown(
   }
   const data = parse.data
 
-  if (data.turnstileToken) {
+  // 보안: Turnstile 토큰 필수 검증 (sitekey 설정 시)
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!data.turnstileToken) {
+      return { ok: false, error: 'Captcha 인증을 완료해주세요' }
+    }
     const ok = await verifyTurnstile(data.turnstileToken)
     if (!ok) return { ok: false, error: 'Captcha 인증 실패' }
   }
@@ -37,13 +41,16 @@ export async function submitTakedown(
     return { ok: false, error: '올바른 URL이 아닙니다' }
   }
 
+  // 보안: LIKE-injection 방지 — hostname의 % _ \ 제거
+  const safeHostname = hostname.replace(/[%_\\]/g, '')
+
   const supabase = await createClient()
   const db = supabase as unknown as SupabaseUntyped
 
   const { data: site } = (await db
     .from('sites')
     .select('id')
-    .ilike('normalized_url', `%${hostname}%`)
+    .ilike('normalized_url', `%${safeHostname}%`)
     .limit(1)
     .maybeSingle()) as { data: { id: string } | null }
 
@@ -58,9 +65,8 @@ export async function submitTakedown(
 
   if (error) return { ok: false, error: error.message }
 
-  if (data.requestType === 'privacy' && site?.id) {
-    await db.from('sites').update({ visibility: 'unlisted' }).eq('id', site.id)
-  }
+  // 보안: privacy 신고 자동 unlisted 제거. abuse vector — 인증 없이 누구나 임의
+  // 사이트를 비공개로 만들 수 있었음. admin이 /admin/takedowns에서 검수 후 처리.
 
   return {
     ok: true,
