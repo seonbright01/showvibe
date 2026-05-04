@@ -12,7 +12,11 @@ interface VibeChartRowProps {
 function RankChange({ change }: { change: number }) {
   if (change > 0) {
     return (
-      <span className="flex items-center gap-0.5 text-xs font-medium" style={{ color: '#E54F42' }}>
+      <span
+        className="flex items-center gap-0.5 text-xs font-medium"
+        style={{ color: 'var(--trend-up)' }}
+        aria-label={`순위 ${change}계단 상승`}
+      >
         ▲ {change}
       </span>
     )
@@ -20,13 +24,21 @@ function RankChange({ change }: { change: number }) {
 
   if (change < 0) {
     return (
-      <span className="flex items-center gap-0.5 text-xs font-medium" style={{ color: '#3B82F6' }}>
+      <span
+        className="flex items-center gap-0.5 text-xs font-medium"
+        style={{ color: 'var(--trend-down)' }}
+        aria-label={`순위 ${Math.abs(change)}계단 하락`}
+      >
         ▼ {Math.abs(change)}
       </span>
     )
   }
 
-  return <span className="text-xs font-medium text-text-muted">–</span>
+  return (
+    <span className="text-xs font-medium text-text-muted" aria-label="순위 변동 없음">
+      –
+    </span>
+  )
 }
 
 function gradientForName(name: string): string {
@@ -98,9 +110,12 @@ export function VibeChartRow({ entry }: VibeChartRowProps) {
       {/* Project name + maker */}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2 min-w-0">
-          <span className="truncate text-[13px] font-medium text-text-high">
+          <Link
+            href={`/projects/${site.id}`}
+            className="truncate text-[13px] font-medium text-text-high hover:text-coral transition-colors"
+          >
             {site.name}
-          </span>
+          </Link>
           {maker && (
             <span className="truncate text-[11px] font-mono text-text-muted">
               @{maker.name}

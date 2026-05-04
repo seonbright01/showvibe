@@ -69,9 +69,11 @@ export function ProjectCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Thumbnail */}
-      <div
-        className="relative aspect-video overflow-hidden"
+      {/* Thumbnail (clickable → detail) */}
+      <Link
+        href={`/projects/${site.id}`}
+        aria-label={`${site.name} 상세 보기`}
+        className="relative block aspect-video overflow-hidden"
         style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
       >
         {thumbnailUrl ? (
@@ -97,51 +99,58 @@ export function ProjectCard({
                 접속 불가 · Archived
               </span>
             ) : (
-              <Link
+              <a
                 href={site.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1.5 rounded-lg bg-coral px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-coral-hover"
               >
                 <span>↗</span>
                 Visit
-              </Link>
+              </a>
             )}
           </div>
         )}
-      </div>
+      </Link>
 
-      {/* Card body */}
+      {/* Card body — title + description + badges all clickable to detail */}
       <div className="p-3">
-        <div className="mb-1.5">
-          <h3
-            className={`line-clamp-2 text-[14px] font-semibold leading-snug ${
-              isArchived ? 'text-text-muted' : 'text-text-high'
+        <Link
+          href={`/projects/${site.id}`}
+          aria-label={`${site.name} 상세 보기`}
+          className="block group/body"
+        >
+          <div className="mb-1.5">
+            <h3
+              className={`line-clamp-2 text-[14px] font-semibold leading-snug transition-colors group-hover/body:text-coral ${
+                isArchived ? 'text-text-muted' : 'text-text-high'
+              }`}
+            >
+              {site.name}
+            </h3>
+            {maker && (
+              <span className="mt-0.5 block truncate text-[11px] font-mono text-text-muted">
+                by {maker.name}
+              </span>
+            )}
+          </div>
+
+          <p
+            className={`mb-2 line-clamp-3 text-[12.5px] leading-snug ${
+              isArchived ? 'text-text-muted' : 'text-text-medium'
             }`}
           >
-            {site.name}
-          </h3>
-          {maker && (
-            <span className="mt-0.5 block truncate text-[11px] font-mono text-text-muted">
-              by {maker.name}
-            </span>
-          )}
-        </div>
+            {analysis?.aiSummary || site.description || ''}
+          </p>
 
-        <p
-          className={`mb-2 line-clamp-3 text-[12.5px] leading-snug ${
-            isArchived ? 'text-text-muted' : 'text-text-medium'
-          }`}
-        >
-          {analysis?.aiSummary || site.description || ''}
-        </p>
-
-        {/* Badges */}
-        <div className="mb-1.5 flex flex-wrap gap-1">
-          <StatusBadge status={site.status} />
-          <SourceBadge sourceType={site.sourceType} />
-          {toolName && <ToolBadge tool={toolName} />}
-        </div>
+          {/* Badges */}
+          <div className="mb-1.5 flex flex-wrap gap-1">
+            <StatusBadge status={site.status} />
+            <SourceBadge sourceType={site.sourceType} />
+            {toolName && <ToolBadge tool={toolName} />}
+          </div>
+        </Link>
 
         {/* Like + Save + Report (회원만 — 미로그인 시 클릭 → /signin redirect) */}
         {!isArchived && (

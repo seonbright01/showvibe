@@ -37,17 +37,47 @@ function gradientForCategory(category: string | null): string {
   return palettes[category] ?? 'from-bg-surface to-bg-elevated'
 }
 
+// SEO: 마크다운 문법 제거 plaintext 추출 (description fallback용)
+function toPlainText(md: string, limit = 160): string {
+  return md
+    .replace(/```[\s\S]*?```/g, '') // 코드 블록 제거
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // 이미지 제거
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 링크 텍스트만
+    .replace(/[#*_`>~-]/g, '') // 마크다운 문자 제거
+    .replace(/\n+/g, ' ') // 줄바꿈 → 공백
+    .trim()
+    .slice(0, limit)
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const post = await getPostBySlug(slug)
   if (!post) {
-    return { title: 'Post not found — ShowVibe' }
+    return { title: 'Post not found' }
   }
+  const description = post.excerpt ?? toPlainText(post.bodyMd, 160)
+  const ogImage = post.coverImageUrl ?? '/logo/wordmark-white.png'
   return {
-    title: `${post.title} — ShowVibe`,
-    description: post.excerpt ?? post.bodyMd.slice(0, 160),
+    title: post.title,
+    description,
+    alternates: { canonical: `/posts/${post.slug}` },
+    openGraph: {
+      type: 'article',
+      title: post.title,
+      description,
+      url: `/posts/${post.slug}`,
+      publishedTime: post.publishedAt ?? undefined,
+      modifiedTime: post.updatedAt,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+      images: [ogImage],
+    },
   }
 }
 
@@ -65,8 +95,41 @@ export default async function PostDetailPage({ params }: PageProps) {
       : []
   const gradient = gradientForCategory(post.category)
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://showvibe.app'
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt ?? toPlainText(post.bodyMd, 200),
+    image: post.coverImageUrl
+      ? [post.coverImageUrl]
+      : [`${siteUrl}/logo/wordmark-white.png`],
+    datePublished: post.publishedAt ?? post.createdAt,
+    dateModified: post.updatedAt,
+    author: { '@type': 'Organization', name: 'ShowVibe' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'ShowVibe',
+      url: siteUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo/wordmark-white.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${siteUrl}/posts/${post.slug}`,
+    },
+  }
+
   return (
     <AppShell>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <main className="flex-1">
         <div className="mx-auto max-w-[1200px] px-6 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-10">
           <article className="lg:col-span-8 lg:max-w-3xl">

@@ -73,11 +73,7 @@ export default function ArchivePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {archived.map((site) => {
               const enriched = getEnrichedSiteData(site);
-              return (
-                <Link key={site.id} href={`/archive/${site.id}`}>
-                  <ProjectCard {...enriched} />
-                </Link>
-              );
+              return <ProjectCard key={site.id} {...enriched} />;
             })}
           </div>
         </section>

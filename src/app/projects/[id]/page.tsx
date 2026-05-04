@@ -15,6 +15,7 @@ import { ViewTracker } from '@/components/sites/ViewTracker'
 import { VisitButton } from '@/components/sites/VisitButton'
 import { SaveButton } from '@/components/sites/SaveButton'
 import { LikeButton } from '@/components/sites/LikeButton'
+import { CollapsibleDescription } from '@/components/sites/CollapsibleDescription'
 import { getLikeCountAndState, getSaveState } from '@/lib/social/queries'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { getSiteById, getSimilarSites } from '@/lib/sites/queries'
@@ -51,15 +52,33 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
   if (!UUID_REGEX.test(id)) {
-    return { title: 'Project not found · ShowVibe' }
+    return { title: 'Project not found' }
   }
   const enriched = await getSiteById(id)
   if (!enriched) {
-    return { title: 'Project not found · ShowVibe' }
+    return { title: 'Project not found' }
   }
+  const { site, analysis, media } = enriched
+  const description =
+    analysis?.aiSummary ?? site.description ?? `${site.name} - vibe-coded project on ShowVibe`
+  const ogImage = media?.imageUrl ?? '/logo/wordmark-white.png'
   return {
-    title: `${enriched.site.name} · ShowVibe`,
-    description: enriched.site.description,
+    title: site.name,
+    description,
+    alternates: { canonical: `/projects/${id}` },
+    openGraph: {
+      type: 'article',
+      title: site.name,
+      description,
+      url: `/projects/${id}`,
+      images: [{ url: ogImage, alt: `${site.name} screenshot` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: site.name,
+      description,
+      images: [ogImage],
+    },
   }
 }
 
@@ -91,8 +110,50 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
   const idHash = site.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
 
+  // SEO: schema.org JSON-LD — SoftwareApplication + WebPage 듀얼 schema
+  const SITE_URL =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://showvibe.app'
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    url: `${SITE_URL}/projects/${id}`,
+    name: site.name,
+    description: aiText ?? site.name,
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: 'Projects', item: `${SITE_URL}/explore` },
+        { '@type': 'ListItem', position: 3, name: site.name },
+      ],
+    },
+    mainEntity: {
+      '@type': 'SoftwareApplication',
+      name: site.name,
+      url: site.url,
+      applicationCategory: analysis?.category ?? 'WebApplication',
+      operatingSystem: 'Web',
+      ...(analysis?.vibeScore != null && {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: (analysis.vibeScore / 20).toFixed(1),
+          bestRating: '5',
+          worstRating: '0',
+          ratingCount: Math.max(likeState.count, 1),
+        },
+      }),
+      ...(media?.imageUrl && { image: media.imageUrl }),
+      ...(maker && { author: { '@type': 'Person', name: maker.name } }),
+    },
+  }
+
   return (
     <AppShell>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ViewTracker siteId={id} />
       <main className="flex-1">
         {/* Breadcrumb */}
@@ -170,9 +231,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 {isVerified && <ClaimBadge status="verified" />}
               </div>
 
-              <p className="text-sm text-text-medium leading-relaxed mb-5">
-                {site.description}
-              </p>
+              <CollapsibleDescription
+                text={site.description}
+                maxLines={8}
+                className="mb-5"
+              />
 
               <dl className="space-y-1.5 text-sm mb-6">
                 {maker && (
@@ -297,6 +360,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             {/* Inline ad slot (responsive in-article) */}
             <AdSlot slot="in_article" />
 
+            {/* Comments */}
+            <CommentList siteId={id} />
+
             {/* Similar Vibes */}
             {similar.length > 0 && (
               <div>
@@ -305,20 +371,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {similar.map((s) => (
-                    <Link
-                      key={s.site.id}
-                      href={`/projects/${s.site.id}`}
-                      className="block"
-                    >
-                      <ProjectCard {...s} />
-                    </Link>
+                    <ProjectCard key={s.site.id} {...s} />
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Comments */}
-            <CommentList siteId={id} />
           </div>
 
           {/* Sidebar */}

@@ -19,6 +19,7 @@ import {
 } from "@/lib/sites/queries";
 import { getTopChart, type ChartEntry as ChartEntryDb } from "@/lib/chart/queries";
 import { getPopularTags } from "@/lib/tags/queries";
+import { getPublishedPosts } from "@/lib/posts/queries";
 import { getSessionUser } from "@/lib/auth/guards";
 import type { ChartEntry as DomainChartEntry, User } from "@/types";
 import Link from "next/link";
@@ -45,15 +46,6 @@ interface HomeStory {
   viewCount: number;
   replyCount: number;
   tags: string[];
-}
-
-interface HomePost {
-  slug: string;
-  title: string;
-  category: string;
-  publishedAt: string;
-  excerpt: string;
-  gradient: string;
 }
 
 interface HomeTheme {
@@ -107,36 +99,6 @@ const HOME_STORIES: readonly HomeStory[] = [
   },
 ];
 
-const HOME_POSTS: readonly HomePost[] = [
-  {
-    slug: "2026-week18-trending",
-    title: "2026년 4월 4주차 — 이번 주 가장 핫한 바이브코딩 프로젝트 5선",
-    category: "주간 핫이슈",
-    publishedAt: "2026-05-01",
-    excerpt:
-      "이번 주 ShowVibe 차트 상위권에 오른 프로젝트들의 공통점은 무엇일까. 트래픽 급상승 사이트들을 분석합니다.",
-    gradient: "from-coral/30 via-coral/10 to-claimed/20",
-  },
-  {
-    slug: "cursor-vs-lovable-2026",
-    title: "Cursor vs Lovable — 2026년 비교 분석",
-    category: "트렌드 분석",
-    publishedAt: "2026-04-28",
-    excerpt:
-      "AI 코딩 도구의 양대 산맥, 실제 사용자 후기와 결과물 비교. 어떤 도구가 어떤 프로젝트에 더 적합한가.",
-    gradient: "from-claimed/30 via-claimed/10 to-coral/20",
-  },
-  {
-    slug: "how-jimin-built-lawflow",
-    title: "인터뷰: Jimin Park가 말하는 LawFlow의 시작",
-    category: "제작 현장",
-    publishedAt: "2026-04-25",
-    excerpt:
-      "법대생이 어떻게 30일 만에 LegalTech SaaS를 만들었나. 코딩 경험 없는 메이커의 진짜 이야기.",
-    gradient: "from-active/30 via-active/10 to-warning/20",
-  },
-];
-
 const HOME_THEMES: readonly HomeTheme[] = [
   {
     id: "theme-weekend",
@@ -185,7 +147,7 @@ function formatCount(count: number): string {
 }
 
 export default async function HomePage() {
-  const [sessionUser, trending, newlyDiscovered, archived, chart, tags, editorsPick] = await Promise.all([
+  const [sessionUser, trending, newlyDiscovered, archived, chart, tags, editorsPick, vibePosts] = await Promise.all([
     getSessionUser(),
     getTrendingSites(8),
     getNewlyDiscoveredSites(4),
@@ -193,6 +155,7 @@ export default async function HomePage() {
     getTopChart(24 * 7, undefined, 10),
     getPopularTags(15),
     getEditorsPickSites(4),
+    getPublishedPosts(undefined, 3),
   ]);
 
   const isAuthenticated = Boolean(sessionUser)
@@ -202,13 +165,6 @@ export default async function HomePage() {
   return (
     <AppShell>
       <main className="flex-1">
-        {/* 1. Featured / Sponsored Banner (AdSense leaderboard) */}
-        <section className="border-b border-stroke bg-bg-surface">
-          <div className="mx-auto max-w-[1200px] px-6 py-3">
-            <AdSlot slot="leaderboard" />
-          </div>
-        </section>
-
         {/* 5. Newly Discovered (full-width) */}
         <section className="mx-auto max-w-[1200px] px-6 py-10">
           <div className="flex items-baseline justify-between mb-4">
@@ -232,6 +188,13 @@ export default async function HomePage() {
                 <ProjectCard key={enriched.site.id} {...enriched} isAuthenticated={isAuthenticated} />
               ))
             )}
+          </div>
+        </section>
+
+        {/* Sponsored Banner (AdSense leaderboard) — between Newly Discovered and Vibe Chart */}
+        <section className="border-y border-stroke bg-bg-surface">
+          <div className="mx-auto max-w-[1200px] px-6 py-3">
+            <AdSlot slot="leaderboard" />
           </div>
         </section>
 
@@ -301,48 +264,54 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 9. Vibe Posts */}
-        <section className="mx-auto max-w-[1200px] px-6 py-10 border-t border-stroke">
-          <div className="flex items-baseline justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-bold mb-0.5 font-[var(--font-outfit)]">
-                Vibe Posts
-              </h2>
-              <p className="text-[12px] text-text-muted">에디토리얼 매거진 — 트렌드, 분석, 인터뷰</p>
-            </div>
-            <Link href="/posts" className="text-[12px] text-coral hover:text-coral-hover font-medium">
-              Read More Posts →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {HOME_POSTS.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/posts/${post.slug}`}
-                className="group block bg-bg-surface border border-stroke rounded-xl overflow-hidden hover:border-coral/40 transition-colors"
-              >
-                <div
-                  className={`aspect-[16/9] bg-gradient-to-br ${post.gradient} flex items-end p-4`}
-                >
-                  <span className="text-[10.5px] font-mono uppercase tracking-wide px-2 py-0.5 rounded bg-bg-base/80 backdrop-blur border border-stroke text-text-high">
-                    {post.category}
-                  </span>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-[15px] font-bold text-text-high mb-2 line-clamp-2 group-hover:text-coral transition-colors font-[var(--font-outfit)]">
-                    {post.title}
-                  </h3>
-                  <p className="text-[12.5px] text-text-medium leading-relaxed mb-3 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-                  <p className="text-[11px] text-text-muted">
-                    {formatDate(post.publishedAt)}
-                  </p>
-                </div>
+        {/* 9. Vibe Posts (DB) — 데이터 없으면 섹션 숨김 */}
+        {vibePosts.length > 0 && (
+          <section className="mx-auto max-w-[1200px] px-6 py-10 border-t border-stroke">
+            <div className="flex items-baseline justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold mb-0.5 font-[var(--font-outfit)]">
+                  Vibe Posts
+                </h2>
+                <p className="text-[12px] text-text-muted">에디토리얼 매거진 — 트렌드, 분석, 인터뷰</p>
+              </div>
+              <Link href="/posts" className="text-[12px] text-coral hover:text-coral-hover font-medium">
+                Read More Posts →
               </Link>
-            ))}
-          </div>
-        </section>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {vibePosts.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={`/posts/${post.slug}`}
+                  className="group block bg-bg-surface border border-stroke rounded-xl overflow-hidden hover:border-coral/40 transition-colors"
+                >
+                  <div className="aspect-[16/9] bg-gradient-to-br from-coral/30 via-coral/10 to-claimed/20 flex items-end p-4">
+                    {post.category && (
+                      <span className="text-[10.5px] font-mono uppercase tracking-wide px-2 py-0.5 rounded bg-bg-base/80 backdrop-blur border border-stroke text-text-high">
+                        {post.category}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-[15px] font-bold text-text-high mb-2 line-clamp-2 group-hover:text-coral transition-colors font-[var(--font-outfit)]">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="text-[12.5px] text-text-medium leading-relaxed mb-3 line-clamp-3">
+                        {post.excerpt}
+                      </p>
+                    )}
+                    {post.publishedAt && (
+                      <p className="text-[11px] text-text-muted">
+                        {formatDate(post.publishedAt)}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Trending grid (DB) */}
         {trending.length > 0 && (

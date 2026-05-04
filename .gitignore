@@ -44,6 +44,7 @@ next-env.d.ts
 .claude/settings.local.json
 .claude/launch.json
 .claude/agents/
+.claude/worktrees/
 
 # internal planning docs (kept local, not for public repo)
 docs/

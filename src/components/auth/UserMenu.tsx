@@ -128,13 +128,13 @@ export function UserMenu({ variant = 'icon' }: UserMenuProps = {}) {
         <div className="flex flex-col gap-2">
           <Link
             href="/signin"
-            className="block w-full rounded-lg bg-coral px-3 py-2 text-center text-sm font-semibold text-coral-ink hover:bg-coral-hover transition-colors"
+            className="block w-full rounded-lg bg-coral px-3 py-2.5 text-center text-[15px] font-semibold text-coral-ink hover:bg-coral-hover transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="block w-full rounded-lg border border-stroke px-3 py-2 text-center text-sm font-medium text-text-medium hover:text-text-high hover:bg-bg-elevated transition-colors"
+            className="block w-full rounded-lg border border-stroke px-3 py-2.5 text-center text-[15px] font-medium text-text-medium hover:text-text-high hover:bg-bg-elevated transition-colors"
           >
             Sign up
           </Link>
@@ -168,16 +168,16 @@ export function UserMenu({ variant = 'icon' }: UserMenuProps = {}) {
           aria-expanded={open}
           aria-label="사용자 메뉴 열기"
         >
-          <Avatar url={avatarUrl} initial={initial} size={36} />
+          <Avatar url={avatarUrl} initial={initial} size={42} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-text-high">
+            <p className="truncate text-[15px] font-semibold text-text-high">
               {displayName ?? '이름 없음'}
             </p>
             {displayEmail && (
-              <p className="truncate text-[11px] text-text-muted">{displayEmail}</p>
+              <p className="truncate text-[12px] text-text-muted">{displayEmail}</p>
             )}
           </div>
-          <span aria-hidden className="text-text-muted text-xs">▾</span>
+          <span aria-hidden className="text-text-muted text-sm">▾</span>
         </button>
       ) : (
         <button

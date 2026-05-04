@@ -110,6 +110,31 @@ body {
   color: var(--text-high);
 }
 
+/* 접근성 (WCAG 2.4.7): 키보드 사용자에게 명확한 focus 표시 */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+  border-radius: var(--r1);
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
+/* 트렌드 색상 토큰 — chart row 등에서 사용 */
+:root {
+  --trend-up: var(--coral);
+  --trend-down: oklch(0.74 0.16 250);
+}
+
 /* Scrollbars — slim, surface-tinted */
 ::-webkit-scrollbar {
   width: 10px;
