@@ -4,7 +4,6 @@ import { VibeChartRow } from "@/components/chart/VibeChartRow";
 import { CollectionCard } from "@/components/collection/CollectionCard";
 import { TagCloud } from "@/components/ui/TagCloud";
 import { AdSlot } from "@/components/ads/AdSlot";
-import { NewsletterForm } from "@/components/newsletter/NewsletterForm";
 import {
   MOCK_USERS,
   MOCK_COLLECTIONS,
@@ -20,6 +19,7 @@ import {
 import { getTopChart, type ChartEntry as ChartEntryDb } from "@/lib/chart/queries";
 import { getPopularTags } from "@/lib/tags/queries";
 import { getSessionUser } from "@/lib/auth/guards";
+import { getLikeStatesForSites } from "@/lib/social/queries";
 import type { ChartEntry as DomainChartEntry, User } from "@/types";
 import Link from "next/link";
 
@@ -199,6 +199,16 @@ export default async function HomePage() {
   const chartEntries = chart.map((e) => toDomainChartEntry(e, isAuthenticated));
   const tagList: string[] = tags.length > 0 ? tags : [...MOCK_TAGS];
 
+  const allSiteIds = Array.from(
+    new Set([
+      ...newlyDiscovered.map((e) => e.site.id),
+      ...editorsPick.map((e) => e.site.id),
+      ...trending.map((e) => e.site.id),
+      ...archived.map((e) => e.site.id),
+    ]),
+  )
+  const likeStates = await getLikeStatesForSites(allSiteIds, sessionUser?.id ?? null)
+
   return (
     <AppShell>
       <main className="flex-1">
@@ -228,9 +238,18 @@ export default async function HomePage() {
                 조만간 신규 프로젝트가 추가됩니다.
               </div>
             ) : (
-              newlyDiscovered.map((enriched) => (
-                <ProjectCard key={enriched.site.id} {...enriched} isAuthenticated={isAuthenticated} />
-              ))
+              newlyDiscovered.map((enriched) => {
+                const lk = likeStates[enriched.site.id] ?? { count: 0, isLiked: false }
+                return (
+                  <ProjectCard
+                    key={enriched.site.id}
+                    {...enriched}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                )
+              })
             )}
           </div>
         </section>
@@ -277,6 +296,7 @@ export default async function HomePage() {
                   enriched.analysis?.aiSummary ||
                   enriched.site.description ||
                   '에디터가 추천하는 vibe-coded 프로젝트입니다.'
+                const lk = likeStates[enriched.site.id] ?? { count: 0, isLiked: false }
                 return (
                   <div key={enriched.site.id} className="flex flex-col gap-2">
                     <ProjectCard
@@ -284,6 +304,8 @@ export default async function HomePage() {
                       analysis={enriched.analysis}
                       media={enriched.media}
                       maker={enriched.maker}
+                      initialLikeCount={lk.count}
+                      initialIsLiked={lk.isLiked}
                       isAuthenticated={isAuthenticated}
                     />
                     <div className="rounded-lg border border-coral-line bg-coral-soft px-3 py-2">
@@ -359,9 +381,18 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-              {trending.map((enriched: SiteWithRelations) => (
-                <ProjectCard key={enriched.site.id} {...enriched} isAuthenticated={isAuthenticated} />
-              ))}
+              {trending.map((enriched: SiteWithRelations) => {
+                const lk = likeStates[enriched.site.id] ?? { count: 0, isLiked: false }
+                return (
+                  <ProjectCard
+                    key={enriched.site.id}
+                    {...enriched}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                )
+              })}
             </div>
           </section>
         )}
@@ -381,9 +412,18 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {archived.map((enriched) => (
-                <ProjectCard key={enriched.site.id} {...enriched} isAuthenticated={isAuthenticated} />
-              ))}
+              {archived.map((enriched) => {
+                const lk = likeStates[enriched.site.id] ?? { count: 0, isLiked: false }
+                return (
+                  <ProjectCard
+                    key={enriched.site.id}
+                    {...enriched}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                )
+              })}
             </div>
           </section>
         )}
