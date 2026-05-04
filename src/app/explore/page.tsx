@@ -7,6 +7,7 @@ import {
 } from '@/components/explore/ExploreFilters'
 import { searchSites, type SortKey } from '@/lib/sites/queries'
 import { getSessionUser } from '@/lib/auth/guards'
+import { getLikeStatesForSites } from '@/lib/social/queries'
 
 interface ExplorePageProps {
   searchParams: Promise<{
@@ -46,6 +47,9 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   ])
   const isAuthenticated = Boolean(sessionUser)
 
+  const siteIds = sites.map((s) => s.site.id)
+  const likeStates = await getLikeStatesForSites(siteIds, sessionUser?.id ?? null)
+
   return (
     <AppShell>
       <main className="flex-1">
@@ -82,9 +86,18 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {sites.map((enriched) => (
-                <ProjectCard key={enriched.site.id} {...enriched} isAuthenticated={isAuthenticated} />
-              ))}
+              {sites.map((enriched) => {
+                const lk = likeStates[enriched.site.id] ?? { count: 0, isLiked: false }
+                return (
+                  <ProjectCard
+                    key={enriched.site.id}
+                    {...enriched}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                )
+              })}
             </div>
           )}
         </section>
