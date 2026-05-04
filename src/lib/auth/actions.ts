@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import {
   isAvatarPresetId,
   presetIdToAvatarUrl,
+  AVATAR_PRESET_PREFIX,
 } from '@/lib/avatars/presets'
 
 type ActionResult =
@@ -113,4 +114,66 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/')
+}
+
+export type UpdateProfileResult =
+  | { error: string }
+  | { success: true }
+
+export async function updateProfileAction(
+  _prevState: UpdateProfileResult | null,
+  formData: FormData,
+): Promise<UpdateProfileResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: '로그인이 필요합니다.' }
+
+  const name = String(formData.get('name') ?? '').trim()
+  const bio = String(formData.get('bio') ?? '').trim()
+  const avatarRaw = String(formData.get('avatar') ?? '').trim()
+
+  if (name.length < 2 || name.length > 60) {
+    return { error: '이름은 2~60자여야 합니다.' }
+  }
+  if (bio.length > 500) {
+    return { error: '소개는 500자 이내로 입력해주세요.' }
+  }
+
+  let avatarUrl: string | null = null
+  if (avatarRaw.startsWith(AVATAR_PRESET_PREFIX)) {
+    avatarUrl = avatarRaw
+  } else if (isAvatarPresetId(avatarRaw)) {
+    avatarUrl = presetIdToAvatarUrl(avatarRaw)
+  } else if (avatarRaw === '__keep__' || avatarRaw === '') {
+    // 기존 avatar 유지 (form에서 picker 미선택 또는 명시적 keep)
+    avatarUrl = null
+  } else if (/^https?:\/\//.test(avatarRaw)) {
+    avatarUrl = avatarRaw
+  }
+
+  const updatePayload: {
+    name: string
+    bio: string | null
+    avatar_url?: string
+  } = {
+    name,
+    bio: bio || null,
+  }
+  if (avatarUrl !== null) {
+    updatePayload.avatar_url = avatarUrl
+  }
+
+  const { error } = await supabase
+    .from('users')
+    .update(updatePayload)
+    .eq('id', user.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/account')
+  revalidatePath('/account/edit')
+  revalidatePath('/makers')
+  return { success: true }
 }
