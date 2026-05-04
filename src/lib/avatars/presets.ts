@@ -3,30 +3,38 @@ export type AvatarPresetId =
   | 'w1' | 'w2' | 'w3' | 'w4'
   | 'dog' | 'cat'
 
+export type AvatarCategory = 'male' | 'female' | 'pet'
+
 export interface AvatarPreset {
   id: AvatarPresetId
   label: string
-  category: 'male' | 'female' | 'pet'
-  bg: string
-  accent: string
-  hair: string
-  skin: string
+  category: AvatarCategory
+  /** DiceBear seed for `notionists` style. Pets ignore this. */
+  seed: string
 }
 
 export const AVATAR_PRESETS: readonly AvatarPreset[] = [
-  { id: 'm1', label: 'Lee', category: 'male', bg: '#1F2937', accent: '#E54F42', hair: '#1A1A1A', skin: '#F4D2B0' },
-  { id: 'm2', label: 'Min', category: 'male', bg: '#0F3055', accent: '#3B82F6', hair: '#2C1810', skin: '#E8C3A5' },
-  { id: 'm3', label: 'Park', category: 'male', bg: '#3D2657', accent: '#A855F7', hair: '#3F1E0A', skin: '#F5DDC0' },
-  { id: 'm4', label: 'Han', category: 'male', bg: '#0E3A2F', accent: '#10B981', hair: '#1F1F1F', skin: '#E5BC95' },
-  { id: 'w1', label: 'Kim', category: 'female', bg: '#3B1F3D', accent: '#EC4899', hair: '#2A1A0F', skin: '#F8DDC4' },
-  { id: 'w2', label: 'Yoon', category: 'female', bg: '#1F3D3B', accent: '#06B6D4', hair: '#5C3A1E', skin: '#F4D2B0' },
-  { id: 'w3', label: 'Choi', category: 'female', bg: '#3D2A1F', accent: '#F59E0B', hair: '#1A1A1A', skin: '#F0CCA8' },
-  { id: 'w4', label: 'Seo', category: 'female', bg: '#2D2D55', accent: '#818CF8', hair: '#7B4F2A', skin: '#F8DDC4' },
-  { id: 'dog', label: 'Pup', category: 'pet', bg: '#3D2D1A', accent: '#F59E0B', hair: '#C68B4A', skin: '#F5DDC0' },
-  { id: 'cat', label: 'Kitty', category: 'pet', bg: '#2A1F3D', accent: '#A855F7', hair: '#3F3F46', skin: '#F8DDC4' },
+  { id: 'm1', label: 'Jimin',  category: 'male',   seed: 'jimin-m' },
+  { id: 'm2', label: 'David',  category: 'male',   seed: 'david-m' },
+  { id: 'm3', label: 'Kenji',  category: 'male',   seed: 'kenji-m' },
+  { id: 'm4', label: 'Leo',    category: 'male',   seed: 'leo-m' },
+  { id: 'w1', label: 'Sarah',  category: 'female', seed: 'sarah-w' },
+  { id: 'w2', label: 'Mina',   category: 'female', seed: 'mina-w' },
+  { id: 'w3', label: 'Aria',   category: 'female', seed: 'aria-w' },
+  { id: 'w4', label: 'Luna',   category: 'female', seed: 'luna-w' },
+  { id: 'dog', label: 'Pup',   category: 'pet',    seed: 'pup' },
+  { id: 'cat', label: 'Kitty', category: 'pet',    seed: 'kitty' },
 ] as const
 
 export const AVATAR_PRESET_PREFIX = 'preset:'
+
+/**
+ * Local URL for a pre-baked notionists SVG (humans only).
+ * Files were generated once via DiceBear and live in /public/avatars/.
+ */
+export function humanAvatarUrl(seed: string): string {
+  return `/avatars/${seed}.svg`
+}
 
 export function isAvatarPresetId(value: string): value is AvatarPresetId {
   return AVATAR_PRESETS.some((p) => p.id === value)
