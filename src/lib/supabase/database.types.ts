@@ -556,36 +556,6 @@ export type Database = {
           },
         ]
       }
-      newsletter_subscribers: {
-        Row: {
-          confirmation_token: string | null
-          confirmed_at: string | null
-          created_at: string
-          email: string
-          id: string
-          status: string
-          unsubscribed_at: string | null
-        }
-        Insert: {
-          confirmation_token?: string | null
-          confirmed_at?: string | null
-          created_at?: string
-          email: string
-          id?: string
-          status?: string
-          unsubscribed_at?: string | null
-        }
-        Update: {
-          confirmation_token?: string | null
-          confirmed_at?: string | null
-          created_at?: string
-          email?: string
-          id?: string
-          status?: string
-          unsubscribed_at?: string | null
-        }
-        Relationships: []
-      }
       posts: {
         Row: {
           author_user_id: string
