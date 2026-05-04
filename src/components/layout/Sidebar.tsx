@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { UserMenu } from '@/components/auth/UserMenu'
+import { ShowVibeLogo } from '@/components/ui/Logo'
 
 interface NavLink {
   href: string
@@ -130,6 +131,14 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full flex-col gap-3.5 bg-bg-sidebar p-3.5">
+      <Link
+        href="/"
+        aria-label="ShowVibe — Home"
+        className="inline-flex items-center justify-start px-1 py-2"
+      >
+        <ShowVibeLogo width={150} variant="white" priority />
+      </Link>
+
       <div className="rounded-xl border border-stroke bg-bg-surface p-3.5">
         <UserMenu variant="card" />
       </div>

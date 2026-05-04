@@ -4,6 +4,7 @@ import { VibeChartRow } from "@/components/chart/VibeChartRow";
 import { CollectionCard } from "@/components/collection/CollectionCard";
 import { TagCloud } from "@/components/ui/TagCloud";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { HomeHero } from "@/components/home/HomeHero";
 import {
   MOCK_USERS,
   MOCK_COLLECTIONS,
@@ -175,6 +176,8 @@ export default async function HomePage() {
   return (
     <AppShell>
       <main className="flex-1">
+        <HomeHero />
+
         {/* 5. Newly Discovered (full-width) */}
         <section className="mx-auto max-w-[1200px] px-6 py-10">
           <div className="flex items-baseline justify-between mb-4">

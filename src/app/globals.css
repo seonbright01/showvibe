@@ -156,3 +156,82 @@ a:focus-visible,
   background: rgba(255, 255, 255, 0.16);
   background-clip: padding-box;
 }
+
+/* === ShowVibe hero / avatar animations === */
+@keyframes sv-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.sv-anim-float {
+  animation: sv-float 3.2s ease-in-out infinite;
+}
+
+@keyframes sv-hero-shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.sv-hero-text {
+  background: linear-gradient(
+    90deg,
+    var(--text-high) 0%,
+    var(--coral) 35%,
+    var(--text-high) 65%,
+    var(--coral) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sv-hero-shine 6s linear infinite;
+}
+
+@keyframes sv-pulse-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 rgba(233, 79, 61, 0.0),
+      0 0 60px 0 rgba(233, 79, 61, 0.15) inset;
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(233, 79, 61, 0.35),
+      0 0 80px 4px rgba(233, 79, 61, 0.30) inset;
+  }
+}
+.sv-hero-glow {
+  animation: sv-pulse-glow 4.5s ease-in-out infinite;
+}
+
+@keyframes sv-orbit {
+  from { transform: rotate(0deg) translateX(38%) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(38%) rotate(-360deg); }
+}
+.sv-hero-orbit {
+  animation: sv-orbit 14s linear infinite;
+}
+
+@keyframes sv-rise-fade {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.sv-hero-rise {
+  animation: sv-rise-fade 0.7s ease-out both;
+}
+
+@keyframes sv-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.sv-hero-marquee {
+  animation: sv-marquee 22s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-anim-float,
+  .sv-hero-text,
+  .sv-hero-glow,
+  .sv-hero-orbit,
+  .sv-hero-rise,
+  .sv-hero-marquee {
+    animation: none !important;
+  }
+}
