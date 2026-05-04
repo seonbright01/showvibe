@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
+import { TurnstileWidget } from '@/components/turnstile/TurnstileWidget'
 import { submitSite } from '@/lib/sites/actions'
 
 const TURNSTILE_SITEKEY = process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY
@@ -49,6 +50,7 @@ export default function SubmitPage() {
   const [form, setForm] = useState<SubmitFormState>(INITIAL_STATE)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const updateField = <K extends keyof SubmitFormState>(
@@ -67,6 +69,11 @@ export default function SubmitPage() {
       return
     }
 
+    if (TURNSTILE_SITEKEY && !turnstileToken) {
+      setError('자동 인증을 완료해주세요.')
+      return
+    }
+
     startTransition(async () => {
       const result = await submitSite({
         name: form.name,
@@ -76,6 +83,7 @@ export default function SubmitPage() {
         builtWith: form.builtWith || undefined,
         isCreator: form.isCreator,
         email: form.email || undefined,
+        turnstileToken: turnstileToken ?? undefined,
       })
 
       if (!result.ok) {
@@ -308,11 +316,10 @@ export default function SubmitPage() {
                 <label className="block text-sm font-medium text-text-high mb-2">
                   Verification
                 </label>
-                <div className="border border-dashed border-stroke rounded-lg p-6 bg-bg-elevated text-center">
-                  <p className="text-sm text-text-medium">
-                    Cloudflare Turnstile 위젯이 표시될 자리입니다.
-                  </p>
-                </div>
+                <TurnstileWidget
+                  sitekey={TURNSTILE_SITEKEY}
+                  onToken={setTurnstileToken}
+                />
               </div>
             )}
 

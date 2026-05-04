@@ -3,6 +3,7 @@
 import { Suspense, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
+import { TurnstileWidget } from '@/components/turnstile/TurnstileWidget'
 import { submitTakedown } from '@/lib/takedown/actions'
 import type { TakedownRequestType } from '@/types'
 
@@ -64,6 +65,7 @@ function TakedownPageInner() {
   }))
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const updateField = <K extends keyof TakedownFormState>(
@@ -86,6 +88,11 @@ function TakedownPageInner() {
       return
     }
 
+    if (TURNSTILE_SITEKEY && !turnstileToken) {
+      setError('자동 인증을 완료해주세요.')
+      return
+    }
+
     startTransition(async () => {
       const result = await submitTakedown({
         email: form.email,
@@ -93,6 +100,7 @@ function TakedownPageInner() {
         requestType: form.requestType,
         reason: form.reason,
         confirmIdentity: true,
+        turnstileToken: turnstileToken ?? undefined,
       })
       if (!result.ok) {
         setError(result.error)
@@ -275,11 +283,10 @@ function TakedownPageInner() {
                 <label className="block text-sm font-medium text-text-high mb-2">
                   Verification
                 </label>
-                <div className="border border-dashed border-stroke rounded-lg p-6 bg-bg-elevated text-center">
-                  <p className="text-sm text-text-medium">
-                    Cloudflare Turnstile 위젯이 표시될 자리입니다.
-                  </p>
-                </div>
+                <TurnstileWidget
+                  sitekey={TURNSTILE_SITEKEY}
+                  onToken={setTurnstileToken}
+                />
               </div>
             )}
 
