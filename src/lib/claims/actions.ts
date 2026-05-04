@@ -170,32 +170,14 @@ export async function verifyClaim(input: unknown): Promise<VerifyClaimResult> {
     .update({ status: 'verified', verified_at: new Date().toISOString() })
     .eq('id', claim.id)
 
-  const { data: siteRow } = await db
-    .from('sites')
-    .select('status, visibility')
-    .eq('id', claim.site_id)
-    .single()
-
-  const siteUpdates: {
-    is_claimed: boolean
-    claimed_by_user_id: string
-    status?: string
-    visibility?: string
-    block_reason?: string | null
-    recheck_eligible_at?: string | null
-    recheck_count?: number
-  } = {
+  // 보안: site status/visibility 자동 변경 제거. 클레임은 소유권만 부여.
+  const siteUpdates = {
     is_claimed: true,
     claimed_by_user_id: user.id,
   }
-  if (siteRow?.status === 'blocked' || siteRow?.status === 'archived') {
-    siteUpdates.status = 'unknown'
-    siteUpdates.visibility = 'unlisted'
-    siteUpdates.block_reason = null
-    siteUpdates.recheck_eligible_at = null
-    siteUpdates.recheck_count = 0
-    await db.from('site_analysis').delete().eq('site_id', claim.site_id)
-  }
+  // 보안: blocked/archived 사이트의 자동 unblock 제거. 클레임 인증만으로 admin이
+  // 차단한 사이트를 강제 활성화할 수 있었음. blocked 사이트는 admin 검수 콘솔
+  // (/admin/review)에서만 unblock 가능. 클레임 자체는 소유권만 부여.
 
   await db.from('sites').update(siteUpdates).eq('id', claim.site_id)
 
