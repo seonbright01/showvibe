@@ -37,6 +37,10 @@ interface JoinedRow {
   recheck_eligible_at?: string | null
   recheck_count?: number
   screenshot_attempts?: number
+  is_editors_pick?: boolean
+  editors_note?: string | null
+  editors_pick_updated_at?: string | null
+  editors_pick_updated_by?: string | null
   // joined relations
   site_analysis?: unknown
   site_media?: unknown
@@ -67,10 +71,10 @@ function shapeRow(row: JoinedRow): SiteWithRelations {
     recheck_eligible_at: rest.recheck_eligible_at ?? null,
     recheck_count: rest.recheck_count ?? 0,
     screenshot_attempts: rest.screenshot_attempts ?? 0,
-    is_editors_pick: false,
-    editors_note: null,
-    editors_pick_updated_at: null,
-    editors_pick_updated_by: null,
+    is_editors_pick: rest.is_editors_pick ?? false,
+    editors_note: rest.editors_note ?? null,
+    editors_pick_updated_at: rest.editors_pick_updated_at ?? null,
+    editors_pick_updated_by: rest.editors_pick_updated_by ?? null,
   }
   const site = mapSiteRow(siteOnly)
 
