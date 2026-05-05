@@ -50,9 +50,40 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: '로그인이 필요합니다' }
 
-  const normalizedUrl = normalizeUrlClient(data.url)
-
   const db = supabase as unknown as SupabaseUntyped
+
+  // 보안 (P3.1): is_banned 체크
+  const { data: profile } = (await db
+    .from('users')
+    .select('is_banned')
+    .eq('id', user.id)
+    .maybeSingle()) as { data: { is_banned: boolean } | null }
+  if (profile?.is_banned) {
+    return { ok: false, error: '이용이 정지된 계정입니다' }
+  }
+
+  // 보안 (P3.4): 같은 user 가 60초 내 5건 초과 submit 시 reject.
+  // submitted_by_user_id 컬럼은 throttling 마이그레이션에서 추가됨.
+  // 컬럼 누락 시 throttle 쿼리 실패 → best-effort 로 통과 (가용성 우선).
+  const SUBMIT_RATE_LIMIT_PER_MIN = 5
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  try {
+    const { count } = (await db
+      .from('sites')
+      .select('id', { count: 'exact', head: true })
+      .eq('submitted_by_user_id', user.id)
+      .gte('created_at', sinceIso)) as { count: number | null }
+    if ((count ?? 0) >= SUBMIT_RATE_LIMIT_PER_MIN) {
+      return {
+        ok: false,
+        error: '너무 많이 제출하고 있습니다. 잠시 후 다시 시도해주세요.',
+      }
+    }
+  } catch {
+    // throttle 쿼리 실패 (마이그레이션 미적용 등) — fail-open
+  }
+
+  const normalizedUrl = normalizeUrlClient(data.url)
 
   const { data: existing } = await db
     .from('sites')
@@ -66,6 +97,7 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   // 보안: isCreator 플래그를 신뢰하지 않음. 등록 시점엔 누구든 'creator_submitted'
   // 출처로만 기록되고 소유권은 부여하지 않음. 클레임은 /claim 인증 플로우(meta tag,
   // DNS, GitHub OAuth 등)를 통해서만. 이전엔 isCreator=true로 임의 사이트 소유권 선점 가능.
+  // 보안 (P3.4): submitted_by_user_id 로 user-submit 추적 (rate-limit 및 abuse 분석).
   const { data: inserted, error } = (await db
     .from('sites')
     .insert({
@@ -79,6 +111,7 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
       status: 'unknown',
       claimed_by_user_id: null,
       is_claimed: false,
+      submitted_by_user_id: user.id,
     })
     .select('id')
     .single()) as {

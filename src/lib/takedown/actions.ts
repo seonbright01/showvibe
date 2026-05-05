@@ -86,6 +86,21 @@ export async function submitTakedown(
   const supabase = await createClient()
   const db = supabase as unknown as SupabaseUntyped
 
+  // 보안 (P3.4): 같은 email 이 60초 내 5건 초과 신고 시 reject (anon spam 방지).
+  const TAKEDOWN_RATE_LIMIT_PER_MIN = 5
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  const { count } = (await db
+    .from('takedown_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('requester_email', data.email)
+    .gte('created_at', sinceIso)) as { count: number | null }
+  if ((count ?? 0) >= TAKEDOWN_RATE_LIMIT_PER_MIN) {
+    return {
+      ok: false,
+      error: '너무 빠르게 신고하고 있습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
+
   const { data: site } = (await db
     .from('sites')
     .select('id')

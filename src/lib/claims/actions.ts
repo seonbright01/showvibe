@@ -60,6 +60,32 @@ export async function initClaim(input: unknown): Promise<InitClaimResult> {
   if (!user) return { ok: false, error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
+
+  // 보안 (P3.1): is_banned 체크
+  const { data: profile } = (await db
+    .from('users')
+    .select('is_banned')
+    .eq('id', user.id)
+    .maybeSingle()) as { data: { is_banned: boolean } | null }
+  if (profile?.is_banned) {
+    return { ok: false, error: '이용이 정지된 계정입니다' }
+  }
+
+  // 보안 (P3.4): 같은 user 가 60초 내 3건 초과 claim 시 reject (brute-force 방지).
+  const CLAIM_RATE_LIMIT_PER_MIN = 3
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  const { count } = (await db
+    .from('claims')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', sinceIso)) as { count: number | null }
+  if ((count ?? 0) >= CLAIM_RATE_LIMIT_PER_MIN) {
+    return {
+      ok: false,
+      error: '너무 빠르게 클레임을 시도하고 있습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
+
   const normalized = normalizeUrl(parse.data.siteUrl)
 
   const { data: site } = (await db

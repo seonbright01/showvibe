@@ -26,6 +26,43 @@ function getErrorMessage(error: unknown): string {
   return '알 수 없는 오류가 발생했습니다'
 }
 
+// 보안 (P3.1): 로그인 + ban 체크. 익명 허용이 아닌 mutation 에서 사용.
+async function ensureActiveUser(
+  db: SupabaseUntyped,
+  userId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { data: profile } = (await db
+    .from('users')
+    .select('is_banned')
+    .eq('id', userId)
+    .maybeSingle()) as { data: { is_banned: boolean } | null }
+  if (profile?.is_banned) {
+    return { ok: false, error: '이용이 정지된 계정입니다' }
+  }
+  return { ok: true }
+}
+
+// 보안 (P3.4): 최근 60초 같은 user 의 comment 가 10건 초과면 reject.
+const COMMENT_RATE_LIMIT_PER_MIN = 10
+async function ensureCommentRateLimit(
+  db: SupabaseUntyped,
+  userId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  const { count } = (await db
+    .from('comments')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', sinceIso)) as { count: number | null }
+  if ((count ?? 0) >= COMMENT_RATE_LIMIT_PER_MIN) {
+    return {
+      ok: false,
+      error: '너무 빠르게 댓글을 작성하고 있습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
+  return { ok: true }
+}
+
 export async function createComment(input: unknown): Promise<ActionResult> {
   let data
   try {
@@ -44,6 +81,13 @@ export async function createComment(input: unknown): Promise<ActionResult> {
   if (!user) return { error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
+
+  const active = await ensureActiveUser(db, user.id)
+  if (!active.ok) return { error: active.error }
+
+  const throttle = await ensureCommentRateLimit(db, user.id)
+  if (!throttle.ok) return { error: throttle.error }
+
   const insertPayload: Record<string, string> = {
     user_id: user.id,
     body: data.body,
@@ -75,6 +119,10 @@ export async function reportComment(input: unknown): Promise<ActionResult> {
   if (!user) return { error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
+
+  const active = await ensureActiveUser(db, user.id)
+  if (!active.ok) return { error: active.error }
+
   const { error } = await db.from('comment_reports').insert({
     comment_id: data.commentId,
     reporter_user_id: user.id,
@@ -107,6 +155,10 @@ export async function updateComment(input: unknown): Promise<ActionResult> {
   if (!user) return { error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
+
+  const active = await ensureActiveUser(db, user.id)
+  if (!active.ok) return { error: active.error }
+
   const { data: row, error } = (await db
     .from('comments')
     .update({ body: data.body })
@@ -131,6 +183,10 @@ export async function deleteComment(commentId: string): Promise<ActionResult> {
   if (!user) return { error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
+
+  const active = await ensureActiveUser(db, user.id)
+  if (!active.ok) return { error: active.error }
+
   const { data: row, error } = (await db
     .from('comments')
     .update({ status: 'deleted' })
