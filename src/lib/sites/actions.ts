@@ -3,11 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { verifyTurnstile } from '@/lib/turnstile/verify'
+import type { Database } from '@/lib/supabase/database.types'
 import { submitSiteSchema } from './validators'
 
-type SupabaseUntyped = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from: (table: string) => any
+// 보안 (P3.4): submitted_by_user_id 는 throttling 마이그레이션(20260507000003)에서
+// 추가된 컬럼. database.types.ts 재생성 전까지는 타입 시스템에 없으므로
+// insert payload 만 명시적 확장 타입을 사용.
+type SitesInsert = Database['public']['Tables']['sites']['Insert'] & {
+  submitted_by_user_id?: string | null
 }
 
 function normalizeUrlClient(raw: string): string {
@@ -50,14 +53,12 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: '로그인이 필요합니다' }
 
-  const db = supabase as unknown as SupabaseUntyped
-
   // 보안 (P3.1): is_banned 체크
-  const { data: profile } = (await db
+  const { data: profile } = await supabase
     .from('users')
     .select('is_banned')
     .eq('id', user.id)
-    .maybeSingle()) as { data: { is_banned: boolean } | null }
+    .maybeSingle()
   if (profile?.is_banned) {
     return { ok: false, error: '이용이 정지된 계정입니다' }
   }
@@ -68,11 +69,12 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   const SUBMIT_RATE_LIMIT_PER_MIN = 5
   const sinceIso = new Date(Date.now() - 60_000).toISOString()
   try {
-    const { count } = (await db
+    // 컬럼이 아직 generated types 에 없어서 string-cast filter 사용.
+    const { count } = await supabase
       .from('sites')
       .select('id', { count: 'exact', head: true })
-      .eq('submitted_by_user_id', user.id)
-      .gte('created_at', sinceIso)) as { count: number | null }
+      .eq('submitted_by_user_id' as 'id', user.id)
+      .gte('created_at', sinceIso)
     if ((count ?? 0) >= SUBMIT_RATE_LIMIT_PER_MIN) {
       return {
         ok: false,
@@ -85,7 +87,7 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
 
   const normalizedUrl = normalizeUrlClient(data.url)
 
-  const { data: existing } = await db
+  const { data: existing } = await supabase
     .from('sites')
     .select('id')
     .eq('normalized_url', normalizedUrl)
@@ -98,33 +100,32 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   // 출처로만 기록되고 소유권은 부여하지 않음. 클레임은 /claim 인증 플로우(meta tag,
   // DNS, GitHub OAuth 등)를 통해서만. 이전엔 isCreator=true로 임의 사이트 소유권 선점 가능.
   // 보안 (P3.4): submitted_by_user_id 로 user-submit 추적 (rate-limit 및 abuse 분석).
-  const { data: inserted, error } = (await db
-    .from('sites')
-    .insert({
-      name: data.name,
-      url: data.url,
-      normalized_url: normalizedUrl,
-      description: data.description || null,
-      source_type: 'creator_submitted',
-      source_platform: data.builtWith || null,
-      visibility: 'unlisted',
-      status: 'unknown',
-      claimed_by_user_id: null,
-      is_claimed: false,
-      submitted_by_user_id: user.id,
-    })
-    .select('id')
-    .single()) as {
-    data: { id: string } | null
-    error: { message: string } | null
+  const insertPayload: SitesInsert = {
+    name: data.name,
+    url: data.url,
+    normalized_url: normalizedUrl,
+    description: data.description || null,
+    source_type: 'creator_submitted',
+    source_platform: data.builtWith || null,
+    visibility: 'unlisted',
+    status: 'unknown',
+    claimed_by_user_id: null,
+    is_claimed: false,
+    submitted_by_user_id: user.id,
   }
+  // 컬럼이 generated types 에 추가되면 cast 제거 가능.
+  const { data: inserted, error } = await supabase
+    .from('sites')
+    .insert(insertPayload as Database['public']['Tables']['sites']['Insert'])
+    .select('id')
+    .single()
 
   if (error || !inserted) {
     return { ok: false, error: error?.message ?? 'DB 저장 실패' }
   }
 
   if (data.category) {
-    await db.from('site_analysis').insert({
+    await supabase.from('site_analysis').insert({
       site_id: inserted.id,
       category: data.category,
     })
@@ -134,7 +135,7 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   // site_media 가 존재하면 자동 스크린샷 워커가 자동으로 skip 한다
   // (fetchSitesNeedingScreenshot 가 site_media 존재 여부로 필터). [정합성]
   if (data.screenshotUrl) {
-    await db.from('site_media').insert({
+    await supabase.from('site_media').insert({
       site_id: inserted.id,
       media_type: 'screenshot',
       media_source: 'creator_uploaded',

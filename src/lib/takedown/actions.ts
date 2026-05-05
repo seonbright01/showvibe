@@ -5,11 +5,6 @@ import { sendEmail } from '@/lib/email/ses'
 import { verifyTurnstile } from '@/lib/turnstile/verify'
 import { takedownSchema, type TakedownInput } from './validators'
 
-type SupabaseUntyped = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from: (table: string) => any
-}
-
 export type SubmitTakedownResult =
   | { ok: true; message: string }
   | { ok: false; error: string }
@@ -84,16 +79,15 @@ export async function submitTakedown(
   }
 
   const supabase = await createClient()
-  const db = supabase as unknown as SupabaseUntyped
 
   // 보안 (P3.4): 같은 email 이 60초 내 5건 초과 신고 시 reject (anon spam 방지).
   const TAKEDOWN_RATE_LIMIT_PER_MIN = 5
   const sinceIso = new Date(Date.now() - 60_000).toISOString()
-  const { count } = (await db
+  const { count } = await supabase
     .from('takedown_requests')
     .select('id', { count: 'exact', head: true })
     .eq('requester_email', data.email)
-    .gte('created_at', sinceIso)) as { count: number | null }
+    .gte('created_at', sinceIso)
   if ((count ?? 0) >= TAKEDOWN_RATE_LIMIT_PER_MIN) {
     return {
       ok: false,
@@ -101,21 +95,21 @@ export async function submitTakedown(
     }
   }
 
-  const { data: site } = (await db
+  const { data: site } = await supabase
     .from('sites')
     .select('id')
     .eq('normalized_url', origin)
     .limit(1)
-    .maybeSingle()) as { data: { id: string } | null }
+    .maybeSingle()
 
-  const { error } = (await db.from('takedown_requests').insert({
+  const { error } = await supabase.from('takedown_requests').insert({
     site_id: site?.id ?? null,
     target_url: data.targetUrl,
     requester_email: data.email,
     request_type: data.requestType,
     reason: data.reason,
     status: 'pending',
-  })) as { error: { message: string } | null }
+  })
 
   if (error) return { ok: false, error: error.message }
 
