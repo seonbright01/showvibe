@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { mapSiteRow, mapAnalysisRow, mapMediaRow, mapUserRow } from './mappers'
 import type { Site, SiteAnalysis, SiteMedia, User } from '@/types'
+import type { Database } from '@/lib/supabase/database.types'
 
 export interface SiteWithRelations {
   site: Site
@@ -12,8 +13,60 @@ export interface SiteWithRelations {
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-const SITES_SELECT =
-  '*, site_analysis(*), site_media(*), users:claimed_by_user_id(id, name, avatar_url, role)'
+// 명시 컬럼 목록 — Database['public']['Tables']['sites']['Row']의 모든 키를
+// 빠짐없이 cover해야 한다. 아래 AssertExhaustiveSiteColumns가 컴파일 타임에
+// 누락을 잡아낸다 (스키마에 컬럼이 추가되면 타입 에러로 알림).
+const SITE_COLUMNS = [
+  'id',
+  'name',
+  'url',
+  'normalized_url',
+  'description',
+  'source_type',
+  'source_platform',
+  'status',
+  'visibility',
+  'is_claimed',
+  'claimed_by_user_id',
+  'first_discovered_at',
+  'last_checked_at',
+  'last_active_at',
+  'created_at',
+  'updated_at',
+  'block_reason',
+  'recheck_eligible_at',
+  'recheck_count',
+  'screenshot_attempts',
+  'is_editors_pick',
+  'editors_note',
+  'editors_pick_updated_at',
+  'editors_pick_updated_by',
+] as const
+
+type SiteRowKeys = keyof Database['public']['Tables']['sites']['Row']
+type ListedColumns = (typeof SITE_COLUMNS)[number]
+
+// 컴파일 가드: SITE_COLUMNS가 sites.Row의 모든 키를 cover하는지 양방향 검증.
+// 한쪽이라도 누락/오타가 있으면 'never'에 string을 할당하지 못해 TS 에러가 난다.
+type AssertExhaustiveSiteColumns =
+  Exclude<SiteRowKeys, ListedColumns> extends never
+    ? Exclude<ListedColumns, SiteRowKeys> extends never
+      ? true
+      : ['Unknown column listed in SITE_COLUMNS', Exclude<ListedColumns, SiteRowKeys>]
+    : ['Missing column in SITE_COLUMNS', Exclude<SiteRowKeys, ListedColumns>]
+
+// 강제 평가: 인덱스 접근으로 타입 차이를 컴파일 시점에 트리거.
+const _assertSiteColumns: AssertExhaustiveSiteColumns = true
+void _assertSiteColumns
+
+const SITE_COLUMN_LIST = SITE_COLUMNS.join(', ')
+
+// 좌측 join: site_analysis가 없는 sites도 포함됨 (대부분 사용처가 그렇게 기대).
+const SITES_SELECT = `${SITE_COLUMN_LIST}, site_analysis(*), site_media(*), users:claimed_by_user_id(id, name, avatar_url, role)`
+
+// inner join 변형: site_analysis가 반드시 존재해야 함. category 필터를 SQL
+// push-down 시 부모 행도 함께 제거하기 위해 필요.
+const SITES_SELECT_INNER_ANALYSIS = `${SITE_COLUMN_LIST}, site_analysis!inner(*), site_media(*), users:claimed_by_user_id(id, name, avatar_url, role)`
 
 interface JoinedRow {
   // sites columns
@@ -329,9 +382,13 @@ export async function searchSites(
   const limit = params.limit ?? 60
   try {
     const supabase = await createClient()
+    // category 필터가 있으면 site_analysis와 inner join. 없으면 left join.
+    const selectShape = params.category
+      ? SITES_SELECT_INNER_ANALYSIS
+      : SITES_SELECT
     let query = supabase
       .from('sites')
-      .select(SITES_SELECT)
+      .select(selectShape)
       .eq('visibility', 'public')
       .limit(limit)
 
