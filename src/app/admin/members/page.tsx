@@ -1,6 +1,8 @@
 import { getAllMembers } from '@/lib/members/queries'
 import { RoleSelect } from '@/components/admin/RoleSelect'
+import { BanButton } from '@/components/admin/BanButton'
 import { AvatarImage } from '@/components/ui/AvatarImage'
+import { getSessionUser } from '@/lib/auth/guards'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,14 +27,24 @@ const ROLE_BADGE: Record<string, string> = {
 }
 
 export default async function AdminMembersPage() {
-  const members = await getAllMembers(300)
+  const [sessionUser, members] = await Promise.all([
+    getSessionUser(),
+    getAllMembers(300),
+  ])
+  const myId = sessionUser?.id
 
-  const counts = members.reduce<{ user: number; creator: number; admin: number }>(
+  const counts = members.reduce<{
+    user: number
+    creator: number
+    admin: number
+    banned: number
+  }>(
     (acc, m) => {
       acc[m.role] += 1
+      if (m.isBanned) acc.banned += 1
       return acc
     },
-    { user: 0, creator: 0, admin: 0 },
+    { user: 0, creator: 0, admin: 0, banned: 0 },
   )
 
   return (
@@ -42,15 +54,16 @@ export default async function AdminMembersPage() {
           Members
         </h2>
         <p className="text-[12px] text-text-muted mt-1">
-          전체 가입 회원 · 역할 변경 (admin 전용)
+          전체 가입 회원 · 역할 변경 · 이용정지 (admin 전용)
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <Stat label="전체" value={members.length} />
         <Stat label="user" value={counts.user} />
         <Stat label="creator" value={counts.creator} />
         <Stat label="admin" value={counts.admin} />
+        <Stat label="정지" value={counts.banned} accent={counts.banned > 0} />
       </div>
 
       {members.length === 0 ? (
@@ -66,7 +79,7 @@ export default async function AdminMembersPage() {
                 <th className="text-left px-4 py-2.5 font-medium hidden md:table-cell">
                   Email
                 </th>
-                <th className="text-left px-4 py-2.5 font-medium">현재 Role</th>
+                <th className="text-left px-4 py-2.5 font-medium">Role</th>
                 <th className="text-left px-4 py-2.5 font-medium hidden lg:table-cell">
                   Claims
                 </th>
@@ -74,11 +87,17 @@ export default async function AdminMembersPage() {
                   가입일
                 </th>
                 <th className="text-left px-4 py-2.5 font-medium">Role 변경</th>
+                <th className="text-left px-4 py-2.5 font-medium">정지</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stroke">
               {members.map((m) => (
-                <tr key={m.id} className="hover:bg-bg-elevated/30">
+                <tr
+                  key={m.id}
+                  className={`hover:bg-bg-elevated/30 ${
+                    m.isBanned ? 'opacity-60' : ''
+                  }`}
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <AvatarImage
@@ -87,12 +106,25 @@ export default async function AdminMembersPage() {
                         size={32}
                       />
                       <div className="min-w-0">
-                        <p className="text-text-high font-medium truncate">
+                        <p className="text-text-high font-medium truncate flex items-center gap-1.5">
                           {m.name || '(no name)'}
+                          {m.isBanned && (
+                            <span
+                              className="inline-flex items-center rounded-full border border-coral-line bg-coral-soft px-1.5 py-0 text-[10px] font-medium text-coral"
+                              title={m.bannedReason ?? '사유 없음'}
+                            >
+                              BAN
+                            </span>
+                          )}
                         </p>
                         <p className="text-[11px] text-text-muted font-mono truncate md:hidden">
                           {m.email}
                         </p>
+                        {m.isBanned && m.bannedReason && (
+                          <p className="text-[10.5px] text-coral truncate">
+                            사유: {m.bannedReason}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -117,6 +149,14 @@ export default async function AdminMembersPage() {
                   <td className="px-4 py-3">
                     <RoleSelect userId={m.id} initialRole={m.role} />
                   </td>
+                  <td className="px-4 py-3">
+                    <BanButton
+                      userId={m.id}
+                      userName={m.name || m.email}
+                      isBanned={m.isBanned}
+                      isSelf={myId === m.id}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -127,13 +167,31 @@ export default async function AdminMembersPage() {
   )
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: number
+  accent?: boolean
+}) {
   return (
-    <div className="rounded-lg border border-stroke bg-bg-surface px-3 py-2">
+    <div
+      className={`rounded-lg border px-3 py-2 ${
+        accent
+          ? 'border-coral-line bg-coral-soft'
+          : 'border-stroke bg-bg-surface'
+      }`}
+    >
       <p className="text-[10.5px] uppercase tracking-wider text-text-muted font-mono">
         {label}
       </p>
-      <p className="text-xl font-bold text-text-high font-[var(--font-outfit)]">
+      <p
+        className={`text-xl font-bold font-[var(--font-outfit)] ${
+          accent ? 'text-coral' : 'text-text-high'
+        }`}
+      >
         {value}
       </p>
     </div>

@@ -9,6 +9,9 @@ export interface MemberRow {
   bio: string | null
   createdAt: string
   claimedCount: number
+  isBanned: boolean
+  bannedAt: string | null
+  bannedReason: string | null
 }
 
 interface RawMemberRow {
@@ -20,6 +23,9 @@ interface RawMemberRow {
   bio: string | null
   created_at: string
   claims?: { count: number }[] | null
+  is_banned?: boolean | null
+  banned_at?: string | null
+  banned_reason?: string | null
 }
 
 const VALID_ROLES = new Set(['user', 'creator', 'admin'])
@@ -33,7 +39,9 @@ export async function getAllMembers(limit = 200): Promise<MemberRow[]> {
     const supabase = createServiceClient()
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, email, avatar_url, role, bio, created_at, claims(count)')
+      .select(
+        'id, name, email, avatar_url, role, bio, created_at, claims(count), is_banned, banned_at, banned_reason',
+      )
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -53,6 +61,9 @@ export async function getAllMembers(limit = 200): Promise<MemberRow[]> {
       bio: row.bio,
       createdAt: row.created_at,
       claimedCount: row.claims?.[0]?.count ?? 0,
+      isBanned: row.is_banned ?? false,
+      bannedAt: row.banned_at ?? null,
+      bannedReason: row.banned_reason ?? null,
     }))
   } catch (err) {
     if (process.env.NODE_ENV !== 'production') {
