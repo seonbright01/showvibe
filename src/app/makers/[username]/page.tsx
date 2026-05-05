@@ -8,6 +8,8 @@ import { notFound } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
 import { ProjectCard } from '@/components/project/ProjectCard'
 import { getMakerById } from '@/lib/makers/queries'
+import { getSessionUser } from '@/lib/auth/guards'
+import { getLikeStatesForSites } from '@/lib/social/queries'
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -44,7 +46,10 @@ export async function generateMetadata({
 
 export default async function MakerProfilePage({ params }: PageProps) {
   const { username } = await params
-  const result = await getMakerById(username)
+  const [result, sessionUser] = await Promise.all([
+    getMakerById(username),
+    getSessionUser(),
+  ])
 
   if (!result) {
     notFound()
@@ -52,6 +57,9 @@ export default async function MakerProfilePage({ params }: PageProps) {
 
   const { maker, sites } = result
   const bio = maker.bio ?? '바이브코딩으로 무언가를 만들고 있는 메이커'
+  const isAuthenticated = Boolean(sessionUser)
+  const siteIds = sites.map((s) => s.site.id)
+  const likeStates = await getLikeStatesForSites(siteIds, sessionUser?.id ?? null)
 
   return (
     <AppShell>
@@ -136,15 +144,21 @@ export default async function MakerProfilePage({ params }: PageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {sites.map((s) => (
-                <ProjectCard
-                  key={s.site.id}
-                  site={s.site}
-                  analysis={s.analysis}
-                  media={s.media}
-                  maker={s.maker}
-                />
-              ))}
+              {sites.map((s) => {
+                const lk = likeStates[s.site.id] ?? { count: 0, isLiked: false }
+                return (
+                  <ProjectCard
+                    key={s.site.id}
+                    site={s.site}
+                    analysis={s.analysis}
+                    media={s.media}
+                    maker={s.maker}
+                    initialLikeCount={lk.count}
+                    initialIsLiked={lk.isLiked}
+                    isAuthenticated={isAuthenticated}
+                  />
+                )
+              })}
             </div>
           )}
         </section>
