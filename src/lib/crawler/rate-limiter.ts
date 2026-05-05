@@ -1,3 +1,13 @@
+/**
+ * 도메인별 in-process rate limiter.
+ *
+ * ⚠️ Vercel serverless multi-instance 한계:
+ * 슬롯 상태(`buckets`)를 in-memory `Map`으로 들고 있어서 instance 간에 공유되지 않음.
+ * 동시에 여러 lambda instance가 살아있으면 한 도메인에 대해 분당 N회 보장이 깨진다
+ * (instance 수 만큼 곱해진 traffic이 실제로 나갈 수 있음).
+ * 외부 도메인에 대한 정중한 crawling 페이스를 강제하려면 distributed limiter
+ * (Redis / Upstash / Vercel KV 기반 token-bucket 등) 도입 검토 필요.
+ */
 interface DomainBucket {
   lastRequestAt: number
   queue: Array<() => void>
