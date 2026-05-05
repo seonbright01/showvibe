@@ -15,9 +15,12 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-shell">
-      <TopBar onOpenMobileNav={() => setMobileOpen(true)} />
+      {/* TopBar: lg 이상에선 사이드바 상단에 로고가 있으므로 모바일/태블릿에서만 표시 */}
+      <div className="lg:hidden">
+        <TopBar onOpenMobileNav={() => setMobileOpen(true)} />
+      </div>
 
-      <div className="flex flex-1 gap-2 px-2 pb-2">
+      <div className="flex flex-1 gap-2 px-2 pb-2 lg:pt-2">
         <aside
           aria-label="Primary sidebar"
           className="hidden w-[280px] shrink-0 lg:block"
@@ -25,8 +28,8 @@ export function AppShell({ children }: AppShellProps) {
           <div
             className="sticky rounded-lg"
             style={{
-              top: `calc(${TOPBAR_HEIGHT}px + 0.5rem)`,
-              maxHeight: `calc(100vh - ${TOPBAR_HEIGHT}px - 1rem)`,
+              top: `0.5rem`,
+              maxHeight: `calc(100vh - 1rem)`,
               overflowY: 'auto',
             }}
           >
