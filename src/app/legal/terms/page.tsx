@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "ShowVibe 서비스 이용약관",
 };
 
-const LAST_UPDATED = "2026.05.03";
+const LAST_UPDATED = "2026.05.06";
 
 export default function TermsPage() {
   return (
@@ -82,7 +82,6 @@ export default function TermsPage() {
                 <li>프로젝트 검색·탐색·차트·컬렉션</li>
                 <li>제작자 프로필, 댓글, 저장, 공유</li>
                 <li>제작자 직접 등록(Submit) 및 인증(Claim)</li>
-                <li>뉴스레터 구독</li>
               </ul>
             </section>
 
