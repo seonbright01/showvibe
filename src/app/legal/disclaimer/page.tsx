@@ -53,6 +53,18 @@ export default function DisclaimerPage() {
                 <li>
                   사이트의 정상 운영 여부, 보안성, 신뢰성을 보증하지 않습니다.
                 </li>
+                <li>
+                  서비스는 자동 수집된 콘텐츠의 정확성·합법성·저작권 적합성을
+                  보증하지 않으며, 콘텐츠가 제3자의 권리를 침해하는 것으로
+                  확인된 경우에는{" "}
+                  <a
+                    href="/legal/copyright"
+                    className="text-coral hover:text-coral-hover"
+                  >
+                    저작권 정책
+                  </a>
+                  에 따라 신속히 처리합니다.
+                </li>
               </ul>
             </section>
 
@@ -93,8 +105,15 @@ export default function DisclaimerPage() {
               <p>
                 서비스에서 제공되는 외부 사이트 링크는 사용자 편의를 위한 것이며,
                 해당 사이트의 콘텐츠, 보안, 운영 정책에 대해 ShowVibe는 어떠한
-                책임도 지지 않습니다. 외부 사이트 방문 시 자체 판단과 주의가
-                필요합니다.
+                책임도 지지 않습니다. 외부 사이트 방문은{" "}
+                <strong className="text-text-high">
+                  사용자 본인의 자기 책임 하
+                </strong>
+                에 이루어지며, 외부 사이트의 악성 코드, 피싱, 사기, 개인정보
+                침해, 결제 분쟁 등으로 인해 발생하는 어떠한 손해에 대해서도
+                ShowVibe는 책임을 지지 않습니다. 링크된 사이트의 운영 주체와
+                ShowVibe는 별개의 법인 또는 개인이며, 제휴·보증·인증 관계가
+                있음을 의미하지 않습니다.
               </p>
             </section>
 
@@ -142,6 +161,13 @@ export default function DisclaimerPage() {
                   Claim
                 </a>
                 절차를 통해 수정을 요청할 수 있습니다.
+              </p>
+            </section>
+
+            <section className="mt-10 pt-6 border-t border-stroke">
+              <p className="text-sm text-text-muted italic">
+                본 면책조항은 외부 법무 검토 전 임시본이며, 사업자 등록 및
+                정식 법무 자문 후 정식판으로 업데이트됩니다.
               </p>
             </section>
           </div>

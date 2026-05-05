@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "ShowVibe가 수집·처리하는 개인정보의 항목, 목적, 보관 기간",
 };
 
-const LAST_UPDATED = "2026.05.03";
+const LAST_UPDATED = "2026.05.06";
 
 export default function PrivacyPage() {
   return (
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-1.5">
                 <li>
                   <strong className="text-text-high">필수:</strong> 이메일 주소
-                  (회원가입, 뉴스레터 구독)
+                  (회원가입)
                 </li>
                 <li>
                   <strong className="text-text-high">자동 수집:</strong> IP 주소,
@@ -68,7 +68,6 @@ export default function PrivacyPage() {
                 <li>서비스 제공 및 개인 맞춤 콘텐츠 추천</li>
                 <li>제작자 인증(Claim) 및 권한 부여</li>
                 <li>스팸·어뷰징 방지 및 법적 분쟁 대응</li>
-                <li>주간 뉴스레터 발송 (구독자에 한함)</li>
                 <li>서비스 개선을 위한 통계 분석 (개인 식별 정보 제외)</li>
               </ul>
             </section>
@@ -111,7 +110,6 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-6 space-y-1.5">
                 <li>회원 정보: 회원 탈퇴 시 즉시 삭제</li>
                 <li>접속 로그/IP: 3개월 (통신비밀보호법 준수)</li>
-                <li>뉴스레터 구독 정보: 구독 해지 시 즉시 삭제</li>
                 <li>법령상 보관 의무가 있는 경우 해당 기간 동안 보관</li>
               </ul>
             </section>
@@ -129,7 +127,6 @@ export default function PrivacyPage() {
                 <li>Vercel (웹 호스팅)</li>
                 <li>Cloudflare (스팸 방지·CDN)</li>
                 <li>Google AdSense (광고 게재, 쿠키 처리)</li>
-                <li>Resend 또는 동급 (뉴스레터 발송 — 추후 도입 예정)</li>
               </ul>
             </section>
 
@@ -177,6 +174,13 @@ export default function PrivacyPage() {
                 </a>
                 또는 개인정보 침해 신고/상담은
                 한국인터넷진흥원(KISA, privacy.kisa.or.kr)으로 접수해주세요.
+              </p>
+            </section>
+
+            <section className="mt-10 pt-6 border-t border-stroke">
+              <p className="text-sm text-text-muted italic">
+                본 처리방침은 외부 법무 검토 전 임시본이며, 사업자 등록 및
+                정식 법무 자문 후 정식판으로 업데이트됩니다.
               </p>
             </section>
           </div>

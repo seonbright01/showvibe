@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "ShowVibe 서비스 이용약관",
 };
 
-const LAST_UPDATED = "2026.05.03";
+const LAST_UPDATED = "2026.05.06";
 
 export default function TermsPage() {
   return (
@@ -82,7 +82,6 @@ export default function TermsPage() {
                 <li>프로젝트 검색·탐색·차트·컬렉션</li>
                 <li>제작자 프로필, 댓글, 저장, 공유</li>
                 <li>제작자 직접 등록(Submit) 및 인증(Claim)</li>
-                <li>뉴스레터 구독</li>
               </ul>
             </section>
 
@@ -101,7 +100,14 @@ export default function TermsPage() {
                   Bot 정책
                 </a>
                 을 따릅니다. 본인의 사이트 노출을 원치 않을 경우 삭제 요청을
-                접수할 수 있습니다.
+                접수할 수 있습니다. 저작권 침해 신고 및 게시중단 절차는
+                <a
+                  href="/legal/copyright"
+                  className="text-coral hover:text-coral-hover ml-1"
+                >
+                  저작권 정책
+                </a>
+                페이지를 참조해주세요.
               </p>
             </section>
 
@@ -175,6 +181,13 @@ export default function TermsPage() {
                 본 약관은 대한민국 법령에 따라 해석됩니다. 서비스와 관련하여
                 분쟁이 발생할 경우 회사 본점 소재지 관할 법원을 1심 관할 법원
                 으로 합니다.
+              </p>
+            </section>
+
+            <section className="mt-10 pt-6 border-t border-stroke">
+              <p className="text-sm text-text-muted italic">
+                본 약관은 외부 법무 검토 전 임시본이며, 사업자 등록 및 정식
+                법무 자문 후 정식판으로 업데이트됩니다.
               </p>
             </section>
           </div>
