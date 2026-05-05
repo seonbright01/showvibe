@@ -4,8 +4,10 @@ import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import AppShell from '@/components/layout/AppShell'
 import { ProjectCard } from '@/components/project/ProjectCard'
+import { CardDeck } from '@/components/posts/CardDeck'
 import { getPostBySlug } from '@/lib/posts/queries'
 import { getSitesByIds } from '@/lib/sites/queries'
+import { parsePostCards } from '@/lib/posts/parse-cards'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -94,6 +96,8 @@ export default async function PostDetailPage({ params }: PageProps) {
       ? await getSitesByIds(post.relatedSiteIds)
       : []
   const gradient = gradientForCategory(post.category)
+  const cards = parsePostCards(post.bodyMd)
+  const isCardDeck = cards.length > 0
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://showvibe.app'
@@ -158,24 +162,34 @@ export default async function PostDetailPage({ params }: PageProps) {
               </div>
             </header>
 
-            <div
-              className={`relative aspect-video rounded-xl overflow-hidden mb-10 bg-gradient-to-br ${gradient}`}
-            >
-              {post.coverImageUrl && (
-                <Image
-                  src={post.coverImageUrl}
-                  alt={post.title}
-                  fill
-                  sizes="(min-width: 1024px) 768px, 100vw"
-                  className="object-cover"
-                />
-              )}
-              <div className="absolute inset-0 bg-bg-base/20" />
-            </div>
+            {isCardDeck ? (
+              <CardDeck
+                cards={cards}
+                coverImageUrl={post.coverImageUrl}
+                postTitle={post.title}
+              />
+            ) : (
+              <>
+                <div
+                  className={`relative aspect-video rounded-xl overflow-hidden mb-10 bg-gradient-to-br ${gradient}`}
+                >
+                  {post.coverImageUrl && (
+                    <Image
+                      src={post.coverImageUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(min-width: 1024px) 768px, 100vw"
+                      className="object-cover"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-bg-base/20" />
+                </div>
 
-            <div className="prose prose-invert max-w-none prose-headings:font-[var(--font-outfit)] prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3 prose-p:text-[14px] prose-p:text-text-medium prose-p:leading-[1.75] prose-a:text-coral hover:prose-a:text-coral-hover">
-              <ReactMarkdown>{post.bodyMd}</ReactMarkdown>
-            </div>
+                <div className="prose prose-invert max-w-none prose-headings:font-[var(--font-outfit)] prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3 prose-p:text-[14px] prose-p:text-text-medium prose-p:leading-[1.75] prose-a:text-coral hover:prose-a:text-coral-hover">
+                  <ReactMarkdown>{post.bodyMd}</ReactMarkdown>
+                </div>
+              </>
+            )}
 
             <section className="mt-12 pt-8 border-t border-stroke">
               <h3 className="text-lg font-bold mb-4 font-[var(--font-outfit)]">
