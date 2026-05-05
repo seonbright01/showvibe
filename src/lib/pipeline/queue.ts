@@ -44,11 +44,14 @@ export async function fetchRecheckCandidates(limit = 20): Promise<PipelineSite[]
   return ((data as PipelineSite[] | null) ?? [])
 }
 
+export const MAX_SCREENSHOT_ATTEMPTS = 3
+
 export async function fetchSitesNeedingScreenshot(limit = 10): Promise<PipelineSite[]> {
   const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('sites')
     .select('id, url, name, description, source_platform, status, visibility, site_media(id)')
+    .lt('screenshot_attempts', MAX_SCREENSHOT_ATTEMPTS)
     .order('first_discovered_at', { ascending: true })
     .limit(limit * 3)
 

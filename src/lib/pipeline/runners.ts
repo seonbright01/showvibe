@@ -157,6 +157,7 @@ export async function runClassifyStep(limit = 20): Promise<ClassifyRunSummary> {
 }
 
 export async function runScreenshotStep(limit = 10): Promise<ScreenshotRunSummary> {
+  const supabase = createServiceClient()
   const sites = await fetchSitesNeedingScreenshot(limit)
   const summary: ScreenshotRunSummary = {
     processed: 0,
@@ -174,6 +175,16 @@ export async function runScreenshotStep(limit = 10): Promise<ScreenshotRunSummar
       summary.providers[key] = (summary.providers[key] ?? 0) + 1
     } else {
       summary.errors.push(`${site.url}: ${result.errors.join('; ')}`)
+      const { data: row } = await supabase
+        .from('sites')
+        .select('screenshot_attempts')
+        .eq('id', site.id)
+        .single()
+      const nextAttempts = (row?.screenshot_attempts ?? 0) + 1
+      await supabase
+        .from('sites')
+        .update({ screenshot_attempts: nextAttempts })
+        .eq('id', site.id)
     }
   }
 
