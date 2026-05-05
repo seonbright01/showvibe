@@ -123,16 +123,3 @@ export function detectToolFromText(text: string | null | undefined): string | nu
   return null
 }
 
-/**
- * 여러 텍스트 소스를 한 번에 검사 (description, html body, meta tags 등).
- * 첫 매칭을 반환. 우선순위는 호출자가 배열 순서로 결정.
- */
-export function detectToolFromSources(
-  ...sources: Array<string | null | undefined>
-): string | null {
-  for (const src of sources) {
-    const found = detectToolFromText(src)
-    if (found) return found
-  }
-  return null
-}

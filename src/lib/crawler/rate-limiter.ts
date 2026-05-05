@@ -58,6 +58,3 @@ function scheduleNext(key: string, intervalMs: number): void {
   }, delay)
 }
 
-export function clearRateLimiter(): void {
-  buckets.clear()
-}

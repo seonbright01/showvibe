@@ -64,9 +64,3 @@ export const PROJECT_CATEGORY_LABELS: readonly string[] = PROJECT_CATEGORIES.map
   (c) => c.label,
 )
 
-/** 라벨 또는 id로 카테고리 검증 */
-export function isValidProjectCategory(value: string): boolean {
-  return PROJECT_CATEGORIES.some(
-    (c) => c.id === value || c.label === value,
-  )
-}
