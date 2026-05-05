@@ -4,19 +4,10 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { FormEvent } from 'react'
 import { TOOL_LABELS } from '@/lib/tools'
+import { PROJECT_CATEGORY_LABELS } from '@/lib/categories'
 
 const TOOL_OPTIONS = TOOL_LABELS
-const CATEGORY_OPTIONS = [
-  'SaaS',
-  'LegalTech',
-  'EdTech',
-  'FinTech',
-  'HealthTech',
-  'Design Tool',
-  'AI Tool',
-  'PetTech',
-  'Travel',
-] as const
+const CATEGORY_OPTIONS: readonly string[] = PROJECT_CATEGORY_LABELS
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All' },

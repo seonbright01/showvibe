@@ -9,6 +9,7 @@ import {
   holdSite,
   rejectSite,
 } from '@/lib/admin/actions'
+import { PROJECT_CATEGORY_LABELS } from '@/lib/categories'
 
 interface Props {
   initialQueue: ReviewCandidate[]
@@ -16,22 +17,7 @@ interface Props {
 
 type ActionFn = (id: string) => Promise<{ ok: boolean; error?: string }>
 
-const CATEGORIES = [
-  'SaaS',
-  'LegalTech',
-  'EdTech',
-  'FinTech',
-  'HealthTech',
-  'Design Tool',
-  'AI Tool',
-  'Productivity',
-  'Marketing',
-  'Developer Tool',
-  'Game',
-  'PetTech',
-  'Travel',
-  'Other',
-] as const
+const CATEGORIES: readonly string[] = PROJECT_CATEGORY_LABELS
 
 export function ReviewConsole({ initialQueue }: Props) {
   const [queue] = useState(initialQueue)

@@ -6,21 +6,11 @@ import AppShell from '@/components/layout/AppShell'
 import { TurnstileWidget } from '@/components/turnstile/TurnstileWidget'
 import { submitSite } from '@/lib/sites/actions'
 import { TOOL_LABELS } from '@/lib/tools'
+import { PROJECT_CATEGORY_LABELS } from '@/lib/categories'
 
 const TURNSTILE_SITEKEY = process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY
 
-const CATEGORIES = [
-  'SaaS',
-  'LegalTech',
-  'EdTech',
-  'FinTech',
-  'HealthTech',
-  'Design Tool',
-  'AI Tool',
-  'PetTech',
-  'Travel',
-  'Other',
-] as const
+const CATEGORIES: readonly string[] = PROJECT_CATEGORY_LABELS
 
 const TOOLS: readonly string[] = [...TOOL_LABELS, 'Other']
 
