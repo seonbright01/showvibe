@@ -22,8 +22,32 @@ async function ensureAdmin() {
   return { supabase, user }
 }
 
-export async function approveSite(siteId: string): Promise<ActionResult> {
+export async function approveSite(
+  siteId: string,
+  category?: string | null,
+): Promise<ActionResult> {
   const { supabase } = await ensureAdmin()
+
+  // 카테고리 입력이 있으면 site_analysis 갱신 (없으면 INSERT, 있으면 UPDATE)
+  const trimmed = (category ?? '').trim()
+  if (trimmed) {
+    const { data: existing } = await supabase
+      .from('site_analysis')
+      .select('id')
+      .eq('site_id', siteId)
+      .maybeSingle()
+    if (existing) {
+      await supabase
+        .from('site_analysis')
+        .update({ category: trimmed })
+        .eq('site_id', siteId)
+    } else {
+      await supabase
+        .from('site_analysis')
+        .insert({ site_id: siteId, category: trimmed })
+    }
+  }
+
   const { error } = await supabase
     .from('sites')
     .update({
