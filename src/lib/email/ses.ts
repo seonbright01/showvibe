@@ -62,6 +62,17 @@ function buildFromAddress(config: SesConfig): string {
   return config.fromEmail
 }
 
+// 보안: 로그 PII 차단 — local-part 앞 2글자만 노출 (`fa****@gmail.com`).
+// 1~2글자 local 은 `*****@domain` 으로 처리. domain 은 그대로 (오류 분석에 필요).
+function maskEmail(addr: string): string {
+  const at = addr.lastIndexOf('@')
+  if (at <= 0) return '****'
+  const local = addr.slice(0, at)
+  const domain = addr.slice(at)
+  if (local.length <= 2) return `*****${domain}`
+  return `${local.slice(0, 2)}****${domain}`
+}
+
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const config = loadConfig()
   if (!config) {
@@ -104,7 +115,10 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown SES error'
-    console.error('[ses] sendEmail failed', { to: toAddresses, error: message })
+    console.error('[ses] sendEmail failed', {
+      to: toAddresses.map(maskEmail),
+      error: message,
+    })
     return {
       ok: false,
       error: message,
