@@ -12,7 +12,9 @@ export const metadata: Metadata = {
     '지금 뜨는 바이브코딩 프로젝트 Top 50. ShowVibe 내부 반응 지표 기반 실시간 차트.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: 차트는 1시간 단위 갱신 명시되어 있으나 내부적으로 더 빨리 변동 가능.
+// sessionUser?.id는 SSR 트리에 직접 박히지 않음 (isAuthenticated boolean만 흘림).
+export const revalidate = 60
 
 const TIME_WINDOWS = [
   { id: '24h', label: '24 Hours', hours: 24 },

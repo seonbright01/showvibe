@@ -11,7 +11,9 @@ export const metadata: Metadata = {
     "사라졌지만 기록할 가치가 있는 바이브코딩 프로젝트들. ShowVibe Archive에서 만나보세요.",
 };
 
-export const dynamic = "force-dynamic";
+// ISR: archive는 변경 빈도 매우 낮음.
+// sessionUser?.id는 SSR 트리에 직접 박히지 않음 (isAuthenticated만 흘림).
+export const revalidate = 300;
 
 export default async function ArchivePage() {
   const [sessionUser, archived] = await Promise.all([

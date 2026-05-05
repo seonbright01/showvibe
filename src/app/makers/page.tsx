@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     '바이브코딩 프로젝트를 만든 메이커들. 검증된 크리에이터의 작품을 디깅하세요.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: 공개 메이커 목록만 표시, 세션 의존 없음.
+export const revalidate = 300
 
 function MakerCard({ entry }: { entry: MakerWithStats }) {
   // TODO: users.username 컬럼 도입 시 user.id → username으로 교체
