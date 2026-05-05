@@ -137,40 +137,34 @@ export interface SiteHealthStats {
 export async function getSiteHealthStats(): Promise<SiteHealthStats> {
   const supabase = await createClient()
 
-  const { data: statusRows } = await supabase
-    .from('sites')
-    .select('status')
-    .eq('visibility', 'public')
+  const [statusRes, totalRes, pendingReviewRes, pendingTakedownsRes, pendingClaimsRes] =
+    await Promise.all([
+      supabase.from('sites').select('status').eq('visibility', 'public'),
+      supabase.from('sites').select('*', { count: 'exact', head: true }),
+      supabase
+        .from('sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('visibility', 'unlisted'),
+      supabase
+        .from('takedown_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+      supabase
+        .from('claims')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+    ])
 
   const statusCounts: Record<string, number> = {}
-  for (const row of statusRows ?? []) {
+  for (const row of statusRes.data ?? []) {
     statusCounts[row.status] = (statusCounts[row.status] ?? 0) + 1
   }
 
-  const { count: totalSites } = await supabase
-    .from('sites')
-    .select('*', { count: 'exact', head: true })
-
-  const { count: pendingReview } = await supabase
-    .from('sites')
-    .select('*', { count: 'exact', head: true })
-    .eq('visibility', 'unlisted')
-
-  const { count: pendingTakedowns } = await supabase
-    .from('takedown_requests')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending')
-
-  const { count: pendingClaims } = await supabase
-    .from('claims')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending')
-
   return {
-    totalSites: totalSites ?? 0,
-    pendingReview: pendingReview ?? 0,
-    pendingTakedowns: pendingTakedowns ?? 0,
-    pendingClaims: pendingClaims ?? 0,
+    totalSites: totalRes.count ?? 0,
+    pendingReview: pendingReviewRes.count ?? 0,
+    pendingTakedowns: pendingTakedownsRes.count ?? 0,
+    pendingClaims: pendingClaimsRes.count ?? 0,
     statusCounts,
   }
 }
