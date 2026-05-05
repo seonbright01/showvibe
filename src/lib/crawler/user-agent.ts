@@ -1,4 +1,5 @@
-export const USER_AGENT = 'ShowVibeBot/1.0 (+https://showvibe.app/bot)'
+export const USER_AGENT =
+  'ShowVibeBot/1.0 (+https://showvibe.app/legal/bot-policy)'
 
 export const DEFAULT_FETCH_HEADERS: Readonly<Record<string, string>> = Object.freeze({
   'User-Agent': USER_AGENT,

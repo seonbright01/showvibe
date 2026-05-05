@@ -41,7 +41,7 @@ export default function BotPolicyPage() {
                 ShowVibeBot은 모든 요청에 다음 User-Agent를 포함합니다.
               </p>
               <pre className="bg-bg-elevated border border-stroke rounded-lg px-4 py-3 text-[13px] text-text-high font-mono overflow-x-auto">
-                <code>ShowVibeBot/1.0 (+https://showvibe.com/bot)</code>
+                <code>ShowVibeBot/1.0 (+https://showvibe.app/legal/bot-policy)</code>
               </pre>
               <p className="mt-3">
                 서버 액세스 로그에서 위 문자열로 ShowVibeBot의 방문을 식별할 수
