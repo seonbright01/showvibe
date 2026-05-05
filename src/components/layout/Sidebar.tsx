@@ -80,6 +80,13 @@ const LibraryIcon = () => (
   </svg>
 )
 
+const ContactIcon = () => (
+  <svg {...iconProps}>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+)
+
 const PlusIcon = () => (
   <svg
     {...iconProps}
@@ -99,6 +106,7 @@ const PRIMARY_LINKS: readonly NavLink[] = [
   { href: '/posts', label: 'Posts', icon: <PostsIcon /> },
   { href: '/archive', label: 'Archive', icon: <ArchiveIcon /> },
   { href: '/library', label: 'Library', icon: <LibraryIcon /> },
+  { href: '/contact', label: 'Contact', icon: <ContactIcon /> },
 ] as const
 
 function NavItem({ link, active }: { link: NavLink; active: boolean }) {
