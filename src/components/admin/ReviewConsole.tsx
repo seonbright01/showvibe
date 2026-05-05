@@ -16,6 +16,23 @@ interface Props {
 
 type ActionFn = (id: string) => Promise<{ ok: boolean; error?: string }>
 
+const CATEGORIES = [
+  'SaaS',
+  'LegalTech',
+  'EdTech',
+  'FinTech',
+  'HealthTech',
+  'Design Tool',
+  'AI Tool',
+  'Productivity',
+  'Marketing',
+  'Developer Tool',
+  'Game',
+  'PetTech',
+  'Travel',
+  'Other',
+] as const
+
 export function ReviewConsole({ initialQueue }: Props) {
   const [queue] = useState(initialQueue)
   const [index, setIndex] = useState(0)
@@ -24,8 +41,14 @@ export function ReviewConsole({ initialQueue }: Props) {
   const [startTime] = useState(() => Date.now())
   const [now, setNow] = useState(() => Date.now())
   const [error, setError] = useState<string | null>(null)
+  const [category, setCategory] = useState<string>('')
 
   const current = queue[index]
+
+  // 카드 바뀌면 자동 분류된 카테고리로 초기화 (admin이 수정 안 누르면 그대로 저장)
+  useEffect(() => {
+    setCategory(current?.analysis?.category ?? '')
+  }, [current])
 
   const advance = useCallback(() => {
     setIndex((i) => Math.min(i + 1, queue.length))
@@ -48,6 +71,19 @@ export function ReviewConsole({ initialQueue }: Props) {
     [current, advance],
   )
 
+  // approve 전용 — 선택된 category 함께 전달
+  const handleApprove = useCallback(() => {
+    if (!current) return
+    setError(null)
+    const id = current.id
+    const cat = category
+    advance()
+    startTransition(async () => {
+      const res = await approveSite(id, cat || null)
+      if (!res.ok) setError(res.error ?? 'Action failed')
+    })
+  }, [current, category, advance])
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName
@@ -57,7 +93,7 @@ export function ReviewConsole({ initialQueue }: Props) {
       switch (e.code) {
         case 'KeyY':
           e.preventDefault()
-          handleAction(approveSite)
+          handleApprove()
           break
         case 'KeyN':
           e.preventDefault()
@@ -83,7 +119,7 @@ export function ReviewConsole({ initialQueue }: Props) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [handleAction, advance])
+  }, [handleAction, handleApprove, advance])
 
   if (!current) {
     return (
@@ -215,10 +251,42 @@ export function ReviewConsole({ initialQueue }: Props) {
                 {current.source_platform}
               </span>
             )}
-            {current.analysis?.category && (
-              <span className="rounded border border-stroke bg-bg-elevated px-2 py-0.5">
-                {current.analysis.category}
-              </span>
+          </div>
+
+          {/* 카테고리 — 자동 분류된 값 default, admin이 수정 후 Approve(Y) */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              htmlFor="category-select"
+              className="font-mono text-[11px] uppercase text-text-muted"
+            >
+              Category
+            </label>
+            <select
+              id="category-select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="rounded-lg border border-stroke bg-bg-elevated px-3 py-1.5 text-[13px] text-text-high focus:border-coral focus:outline-none"
+            >
+              <option value="">— 미분류 —</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+              {/* 자동 분류값이 미리 정의 목록에 없으면 그대로 보존 */}
+              {category &&
+                !CATEGORIES.includes(category as (typeof CATEGORIES)[number]) && (
+                  <option value={category}>{category} (auto)</option>
+                )}
+            </select>
+            {current.analysis?.category && current.analysis.category !== category && (
+              <button
+                type="button"
+                onClick={() => setCategory(current.analysis?.category ?? '')}
+                className="rounded px-2 py-1 text-[11px] text-text-muted hover:text-text-high"
+              >
+                ↺ 자동 분류로 되돌리기
+              </button>
             )}
           </div>
 
@@ -235,7 +303,7 @@ export function ReviewConsole({ initialQueue }: Props) {
 
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => handleAction(approveSite)}
+          onClick={handleApprove}
           className="inline-flex min-w-[120px] flex-1 items-center justify-center gap-2 rounded-lg bg-coral px-4 py-3 text-[13px] font-semibold text-coral-ink hover:bg-coral-hover"
         >
           <kbd className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[10px]">
