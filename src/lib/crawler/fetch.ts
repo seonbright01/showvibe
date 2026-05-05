@@ -1,11 +1,13 @@
 import { isAllowedByRobots } from './robots'
 import { waitForDomainSlot } from './rate-limiter'
 import { DEFAULT_FETCH_HEADERS } from './user-agent'
+import { validateOutboundUrl } from '@/lib/security/url-guard'
 
 const DEFAULT_TIMEOUT_MS = 15000
 const MAX_BODY_BYTES = 5 * 1024 * 1024
+const MAX_REDIRECT_HOPS = 5
 
-export type FetchSkipReason = 'robots_disallow' | 'invalid_url'
+export type FetchSkipReason = 'robots_disallow' | 'invalid_url' | 'ssrf_blocked'
 
 export interface CrawlFetchOk {
   ok: true
@@ -79,22 +81,53 @@ export async function crawlFetch(
     }
   }
 
+  // SSRF 가드: hostname pattern + DNS 해석 IP 재검증
+  const initialGuard = await validateOutboundUrl(rawUrl)
+  if (!initialGuard.ok) {
+    return { ok: false, skipped: true, reason: 'ssrf_blocked' }
+  }
+
   if (rateLimit) {
     await waitForDomainSlot(parsed.host)
   }
 
   const startedAt = Date.now()
   try {
-    const response = await fetch(rawUrl, {
-      method,
-      headers: { ...DEFAULT_FETCH_HEADERS, ...(options.headers ?? {}) },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(timeoutMs),
-    })
+    // redirect manual 처리 — 각 hop마다 SSRF 재검증
+    let currentUrl = rawUrl
+    let response: Response
+    let hops = 0
+    while (true) {
+      response = await fetch(currentUrl, {
+        method,
+        headers: { ...DEFAULT_FETCH_HEADERS, ...(options.headers ?? {}) },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+      if (response.status < 300 || response.status >= 400) break
+      const location = response.headers.get('location')
+      if (!location) break
+      hops += 1
+      if (hops > MAX_REDIRECT_HOPS) {
+        return {
+          ok: false,
+          skipped: false,
+          status: null,
+          errorMessage: 'too_many_redirects',
+          responseTimeMs: Date.now() - startedAt,
+        }
+      }
+      const nextUrl = new URL(location, currentUrl).toString()
+      const hopGuard = await validateOutboundUrl(nextUrl)
+      if (!hopGuard.ok) {
+        return { ok: false, skipped: true, reason: 'ssrf_blocked' }
+      }
+      currentUrl = nextUrl
+    }
 
     const responseTimeMs = Date.now() - startedAt
     const contentType = response.headers.get('content-type')
-    const finalUrl = response.url || rawUrl
+    const finalUrl = currentUrl
 
     if (method === 'HEAD') {
       if (response.ok) {

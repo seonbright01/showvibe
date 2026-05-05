@@ -1,4 +1,5 @@
 import { crawlFetch } from '../crawler/fetch'
+import { validateOutboundUrl } from '@/lib/security/url-guard'
 import type { ScreenshotResult } from './types'
 
 const OG_PATTERNS = [
@@ -51,6 +52,20 @@ export async function captureWithOgFallback(url: string): Promise<ScreenshotResu
       width: null,
       height: null,
       errorMessage: 'no_og_image',
+    }
+  }
+
+  // og:image 직접 fetch는 SSRF 1차 위험 — 검증 추가
+  const imageGuard = await validateOutboundUrl(imageUrl)
+  if (!imageGuard.ok) {
+    return {
+      ok: false,
+      provider: 'og_image',
+      buffer: null,
+      contentType: null,
+      width: null,
+      height: null,
+      errorMessage: `og_image_url_blocked:${imageGuard.reason}`,
     }
   }
 
