@@ -26,6 +26,14 @@ const TOOL_KEYWORDS: Array<{ pattern: RegExp; weight: number; signal: string; to
   { pattern: /vibe[-\s]?coded/i, weight: 30, signal: 'vibe-coded keyword', tool: 'unknown' },
   { pattern: /made\s+with\s+lovable/i, weight: 25, signal: 'made with Lovable', tool: 'lovable' },
   { pattern: /generated\s+by\s+(?:cursor|v0|bolt|lovable|claude|codex|gemini|copilot)/i, weight: 25, signal: 'AI-generated note', tool: 'unknown' },
+  { pattern: /powered\s+by\s+lovable/i, weight: 22, signal: 'powered by Lovable', tool: 'lovable' },
+  { pattern: /powered\s+by\s+cursor/i, weight: 22, signal: 'powered by Cursor', tool: 'cursor' },
+  { pattern: /powered\s+by\s+(?:v0|bolt|windsurf|replit)/i, weight: 20, signal: 'powered by AI tool', tool: 'unknown' },
+  { pattern: /https?:\/\/(?:www\.)?lovable\.(?:app|dev)/i, weight: 15, signal: 'link to lovable.app/dev', tool: 'lovable' },
+  { pattern: /https?:\/\/(?:www\.)?cursor\.com/i, weight: 12, signal: 'link to cursor.com', tool: 'cursor' },
+  { pattern: /https?:\/\/(?:www\.)?v0\.(?:dev|app)/i, weight: 12, signal: 'link to v0.dev/app', tool: 'v0' },
+  { pattern: /https?:\/\/(?:www\.)?bolt\.new/i, weight: 12, signal: 'link to bolt.new', tool: 'bolt' },
+  { pattern: /https?:\/\/(?:www\.)?windsurf\.com/i, weight: 12, signal: 'link to windsurf.com', tool: 'windsurf' },
 ]
 
 const META_GENERATOR_PATTERN =
@@ -78,7 +86,7 @@ export interface Level0Input {
 }
 
 export function runLevel0Filter(input: Level0Input): Level0Result {
-  const threshold = input.threshold ?? 50
+  const threshold = input.threshold ?? 40
   const signals: string[] = []
   let score = 0
   let toolGuess: string | null = null
@@ -131,7 +139,7 @@ export function runLevel0Filter(input: Level0Input): Level0Result {
     const author = authorMatch[1]
     const matched = VIBE_TOOL_NAMES.find((t) => t.pattern.test(author))
     if (matched) {
-      score += 15
+      score += 20
       signals.push(`meta author: ${author}`)
       if (!toolGuess) toolGuess = matched.tool
     }
@@ -153,7 +161,7 @@ export function runLevel0Filter(input: Level0Input): Level0Result {
     const handle = twitterSiteMatch[1]
     const matched = VIBE_TOOL_NAMES.find((t) => t.pattern.test(handle))
     if (matched) {
-      score += 12
+      score += 15
       signals.push(`twitter:site @${handle}`)
       if (!toolGuess) toolGuess = matched.tool
     }
