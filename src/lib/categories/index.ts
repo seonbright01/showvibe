@@ -47,6 +47,12 @@ export const PROJECT_CATEGORIES: readonly ProjectCategory[] = [
     description: '게임',
   },
   {
+    id: 'Security',
+    label: 'Security',
+    description:
+      '보안 관련 — 인증/암호화/취약점 진단/접근 제어/프라이버시 도구 등',
+  },
+  {
     id: 'Others',
     label: 'Others',
     description: '위 카테고리로 분류되지 않는 것들',
