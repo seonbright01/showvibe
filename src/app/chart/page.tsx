@@ -24,11 +24,12 @@ type WindowId = (typeof TIME_WINDOWS)[number]['id']
 
 const CATEGORIES = [
   { id: 'all', label: 'All', value: undefined },
-  { id: 'tools', label: 'Tools', value: 'tool' },
-  { id: 'landing', label: 'Landing', value: 'landing' },
-  { id: 'saas', label: 'SaaS', value: 'saas' },
-  { id: 'portfolio', label: 'Portfolio', value: 'portfolio' },
-  { id: 'other', label: 'Other', value: 'other' },
+  { id: 'design', label: 'Design', value: 'Design' },
+  { id: 'dev-tool', label: 'Development Tool', value: 'Development Tool' },
+  { id: 'creative-tool', label: 'Creative Tool', value: 'Creative Tool' },
+  { id: 'platform', label: 'Platform', value: 'Platform' },
+  { id: 'game', label: 'Game', value: 'Game' },
+  { id: 'others', label: 'Others', value: 'Others' },
 ] as const
 
 type CategoryId = (typeof CATEGORIES)[number]['id']

@@ -6,7 +6,8 @@ import Script from 'next/script'
 import { createComment } from '@/lib/comments/actions'
 
 interface Props {
-  siteId: string
+  siteId?: string
+  postId?: string
   isAuthenticated: boolean
 }
 
@@ -33,7 +34,7 @@ declare global {
 const MIN_LENGTH = 2
 const MAX_LENGTH = 2000
 
-export function CommentForm({ siteId, isAuthenticated }: Props) {
+export function CommentForm({ siteId, postId, isAuthenticated }: Props) {
   const [body, setBody] = useState('')
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +92,7 @@ export function CommentForm({ siteId, isAuthenticated }: Props) {
     startTransition(async () => {
       const res = await createComment({
         siteId,
+        postId,
         body: trimmed,
         turnstileToken,
       })

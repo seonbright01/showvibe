@@ -44,15 +44,19 @@ export async function createComment(input: unknown): Promise<ActionResult> {
   if (!user) return { error: '로그인이 필요합니다' }
 
   const db = supabase as unknown as SupabaseUntyped
-  const { error } = await db.from('comments').insert({
-    site_id: data.siteId,
+  const insertPayload: Record<string, string> = {
     user_id: user.id,
     body: data.body,
-  })
+  }
+  if (data.siteId) insertPayload.site_id = data.siteId
+  if (data.postId) insertPayload.post_id = data.postId
+
+  const { error } = await db.from('comments').insert(insertPayload)
 
   if (error) return { error: error.message as string }
 
-  revalidatePath(`/projects/${data.siteId}`)
+  if (data.siteId) revalidatePath(`/projects/${data.siteId}`)
+  if (data.postId) revalidatePath('/posts', 'layout')
   return { success: true }
 }
 
