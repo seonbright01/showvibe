@@ -37,12 +37,12 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col rounded-lg bg-bg-base">
+        {/* 우측 메인 패널 — 본문 + Footer 한 컬럼. Footer는 패널 스크롤 끝에서만 보임 */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg bg-bg-base">
           <main className="flex-1">{children}</main>
+          <Footer />
         </div>
       </div>
-
-      <Footer />
 
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </div>
