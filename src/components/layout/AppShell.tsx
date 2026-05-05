@@ -1,24 +1,24 @@
-'use client'
-
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
-import { TopBar, TOPBAR_HEIGHT } from './TopBar'
-import { MobileNav } from './MobileNav'
+import { MobileNavTrigger } from './MobileNavTrigger'
 import Footer from './Footer'
 
 interface AppShellProps {
   children: ReactNode
 }
 
+/**
+ * Server component shell. Layout-only — no client state.
+ *
+ * The mobile drawer's open/close state is isolated in <MobileNavTrigger />,
+ * so the rest of the tree (sidebar, page content) renders on the server
+ * and can be cached / streamed without forcing a client boundary.
+ */
 export function AppShell({ children }: AppShellProps) {
-  const [mobileOpen, setMobileOpen] = useState(false)
-
   return (
     <div className="flex min-h-screen flex-col bg-bg-shell">
-      {/* TopBar: lg 이상에선 사이드바 상단에 로고가 있으므로 모바일/태블릿에서만 표시 */}
-      <div className="lg:hidden">
-        <TopBar onOpenMobileNav={() => setMobileOpen(true)} />
-      </div>
+      {/* TopBar + drawer (client island) — only mounts on mobile/tablet */}
+      <MobileNavTrigger />
 
       <div className="flex flex-1 gap-2 px-2 pb-2 lg:pt-2">
         <aside
@@ -43,8 +43,6 @@ export function AppShell({ children }: AppShellProps) {
           <Footer />
         </div>
       </div>
-
-      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </div>
   )
 }
