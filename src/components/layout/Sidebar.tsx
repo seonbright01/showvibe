@@ -102,21 +102,22 @@ const PRIMARY_LINKS: readonly NavLink[] = [
 ] as const
 
 function NavItem({ link, active }: { link: NavLink; active: boolean }) {
+  // 모든 메뉴 같은 baseline. hover와 active(현재 페이지)는 동일한 시각 효과 (음영 + 코랄 텍스트/아이콘).
   return (
     <Link
       href={link.href}
       aria-current={active ? 'page' : undefined}
       className={[
-        'relative flex items-center gap-3.5 rounded-md px-3.5 py-2.5 text-[15px] font-semibold transition-colors',
+        'group flex items-center gap-3.5 rounded-md px-3.5 py-2.5 text-[15px] font-semibold transition-colors',
         active
-          ? 'bg-bg-elevated text-coral before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r before:bg-coral'
-          : 'text-text-medium hover:text-text-high hover:bg-bg-elevated/60',
+          ? 'bg-bg-elevated text-coral'
+          : 'text-text-medium hover:bg-bg-elevated hover:text-coral',
       ].join(' ')}
     >
       <span
         className={[
-          'inline-flex h-5 w-5 shrink-0 items-center justify-center',
-          active ? 'text-coral' : 'text-text-muted',
+          'inline-flex h-5 w-5 shrink-0 items-center justify-center transition-colors',
+          active ? 'text-coral' : 'text-text-muted group-hover:text-coral',
         ].join(' ')}
       >
         {link.icon}

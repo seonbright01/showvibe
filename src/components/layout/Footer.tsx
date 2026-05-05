@@ -73,87 +73,97 @@ function SocialLinks() {
 export default function Footer() {
   return (
     <footer className="bg-bg-surface border-t border-stroke">
-      <div className="mx-auto max-w-[1200px] px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
+      {/* 본문 페이지(max-w-[1200px] px-6)와 동일한 컨테이너로 좌우 정렬 일치 */}
+      <div className="mx-auto max-w-[1200px] px-6 py-10 lg:py-12">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-12">
+          {/* 브랜드 — 모바일 2열 전체, md+에서 4컬럼 폭 */}
+          <div className="col-span-2 md:col-span-4">
             <FooterLogo />
-            <p className="mt-3 text-sm text-text-medium leading-relaxed">
+            <p className="mt-3 text-[13px] text-text-medium leading-relaxed max-w-xs">
               Discover the best vibe-coded projects, track what stays alive, and
               connect with the makers behind them.
             </p>
             <SocialLinks />
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-text-high mb-3">
-              Explore
-            </h3>
-            <ul className="flex flex-col gap-2">
-              {EXPLORE_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-text-medium hover:text-coral transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FooterColumn title="Explore" cols="md:col-span-2">
+            {EXPLORE_LINKS.map((link) => (
+              <FooterLink key={link.href} href={link.href} label={link.label} />
+            ))}
+          </FooterColumn>
 
-          <div>
-            <h3 className="text-sm font-semibold text-text-high mb-3">
-              For Makers
-            </h3>
-            <ul className="flex flex-col gap-2">
-              {MAKER_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-text-medium hover:text-coral transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FooterColumn title="For Makers" cols="md:col-span-2">
+            {MAKER_LINKS.map((link) => (
+              <FooterLink key={link.href} href={link.href} label={link.label} />
+            ))}
+          </FooterColumn>
 
-          <div>
-            <h3 className="text-sm font-semibold text-text-high mb-3">
-              Legal & Requests
-            </h3>
-            <ul className="flex flex-col gap-2">
-              {LEGAL_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={`text-sm transition-colors hover:text-coral ${
-                      HIGHLIGHTED_LEGAL_PATHS.has(link.href)
-                        ? "text-text-high font-medium"
-                        : "text-text-medium"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Legal & Requests — 항목 많아 4컬럼 폭 */}
+          <FooterColumn title="Legal & Requests" cols="md:col-span-4">
+            {LEGAL_LINKS.map((link) => (
+              <FooterLink
+                key={link.href}
+                href={link.href}
+                label={link.label}
+                emphasized={HIGHLIGHTED_LEGAL_PATHS.has(link.href)}
+              />
+            ))}
+          </FooterColumn>
         </div>
 
         <div className="mt-10 border-t border-stroke pt-6">
-          <p className="text-xs text-text-muted leading-relaxed">
+          <p className="text-[11.5px] text-text-muted leading-relaxed">
             showvibe는 Cursor, Lovable, Replit, Bolt, v0 등 언급된 특정 AI 코딩
             도구 및 서비스와 공식 제휴 관계가 아닙니다. 각 상표는 해당 권리자에게
             귀속됩니다.
           </p>
-          <p className="mt-2 text-xs text-text-muted">
+          <p className="mt-2 text-[11.5px] text-text-muted">
             &copy; {new Date().getFullYear()} showvibe. All rights reserved.
           </p>
         </div>
       </div>
     </footer>
   );
+}
+
+function FooterColumn({
+  title,
+  children,
+  cols,
+}: {
+  title: string
+  children: React.ReactNode
+  cols: string
+}) {
+  return (
+    <div className={cols}>
+      <h3 className="text-[11.5px] font-semibold uppercase tracking-wider text-text-high mb-3">
+        {title}
+      </h3>
+      <ul className="flex flex-col gap-2">{children}</ul>
+    </div>
+  )
+}
+
+function FooterLink({
+  href,
+  label,
+  emphasized,
+}: {
+  href: string
+  label: string
+  emphasized?: boolean
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className={`text-[13px] leading-snug transition-colors hover:text-coral ${
+          emphasized ? 'text-text-high font-medium' : 'text-text-medium'
+        }`}
+      >
+        {label}
+      </Link>
+    </li>
+  )
 }
