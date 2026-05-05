@@ -212,7 +212,7 @@ export function ExploreSortControl() {
       >
         <option value="trending">Trending</option>
         <option value="newest">Newest</option>
-        <option value="most_saved">Most Saved</option>
+        <option value="top_score">Top Score</option>
       </select>
     </div>
   )

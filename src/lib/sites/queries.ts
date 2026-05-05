@@ -308,7 +308,10 @@ export async function getSimilarSites(
   }
 }
 
-export type SortKey = 'trending' | 'newest' | 'most_saved'
+// 'top_score'는 site_analysis.vibe_score 기준 내림차순.
+// (이전 'most_saved' 라벨은 실제 구현과 불일치하여 정정 — 실제 site_saves
+//  count 기반 정렬은 후속 작업으로 분리.)
+export type SortKey = 'trending' | 'newest' | 'top_score'
 
 export interface SearchSitesParams {
   q?: string
@@ -348,6 +351,13 @@ export async function searchSites(
       query = query.eq('source_platform', params.tool)
     }
 
+    // category는 referenced table(site_analysis)의 컬럼. Supabase의 inner-join
+    // 의미를 유지한 채 push-down하려면 select 시 site_analysis!inner를 쓰고
+    // .eq('site_analysis.category', ...)로 필터한다.
+    if (params.category) {
+      query = query.eq('site_analysis.category', params.category)
+    }
+
     const q = params.q?.trim()
     if (q && q.length > 0) {
       const escaped = q.replace(/[%_,()]/g, '')
@@ -370,13 +380,9 @@ export async function searchSites(
       return []
     }
 
-    let shaped = ((data ?? []) as unknown as JoinedRow[]).map(shapeRow)
+    const shaped = ((data ?? []) as unknown as JoinedRow[]).map(shapeRow)
 
-    if (params.category) {
-      shaped = shaped.filter((s) => s.analysis?.category === params.category)
-    }
-
-    if (sort === 'most_saved') {
+    if (sort === 'top_score') {
       shaped.sort(
         (a, b) => (b.analysis?.vibeScore ?? 0) - (a.analysis?.vibeScore ?? 0),
       )

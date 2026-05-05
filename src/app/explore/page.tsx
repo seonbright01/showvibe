@@ -20,7 +20,7 @@ interface ExplorePageProps {
   }>
 }
 
-const ALLOWED_SORTS: readonly SortKey[] = ['trending', 'newest', 'most_saved']
+const ALLOWED_SORTS: readonly SortKey[] = ['trending', 'newest', 'top_score']
 
 function normalizeSort(value: string | undefined): SortKey {
   if (!value) return 'trending'
