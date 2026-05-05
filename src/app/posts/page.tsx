@@ -44,17 +44,30 @@ function gradientForTitle(title: string): string {
 
 function PostCard({ post }: { post: PostWithAuthor }) {
   const cover = post.coverImageUrl
-  const gradient = gradientForTitle(post.title)
-  const excerpt = post.excerpt ?? post.bodyMd.slice(0, 140)
+  const body = post.excerpt ?? post.bodyMd.replace(/[#*_`>]/g, '').trim()
+  // 본문 내용이 카드를 넘칠 정도로 길면 '자세히 보기' 표시
+  const isLong = body.length > 160 || post.bodyMd.length > 240
 
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="group flex flex-col rounded-xl border border-stroke bg-bg-surface overflow-hidden hover:shadow-lg transition-shadow"
+      className="group flex flex-col rounded-xl border border-stroke bg-bg-surface overflow-hidden hover:shadow-lg hover:border-coral/40 transition-all"
     >
-      {/* 썸네일: 일러스트 + 제목/카테고리 오버레이 함께 노출 */}
-      <div className={`relative aspect-[4/3] bg-gradient-to-br ${gradient}`}>
-        {cover && (
+      {/* 상단: 제목 + 카테고리 (일러스트 영역 제거) */}
+      <div className="px-5 pt-5 pb-3">
+        {post.category && (
+          <p className="text-[10.5px] font-medium uppercase tracking-wider text-coral mb-2 font-[var(--font-outfit)]">
+            {post.category}
+          </p>
+        )}
+        <h3 className="text-[17px] font-bold text-text-high line-clamp-2 leading-snug font-[var(--font-outfit)] group-hover:text-coral transition-colors">
+          {post.title}
+        </h3>
+      </div>
+
+      {/* 커버 이미지 (있을 때만, 작은 띠 형태) */}
+      {cover && (
+        <div className="relative aspect-[16/9] bg-bg-elevated">
           <Image
             src={cover}
             alt={post.title}
@@ -62,26 +75,19 @@ function PostCard({ post }: { post: PostWithAuthor }) {
             sizes="(min-width: 1024px) 380px, 100vw"
             className="object-cover"
           />
-        )}
-        {/* 하단 그라디언트 오버레이로 텍스트 가독성 확보 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-surface via-bg-surface/40 to-transparent" />
-
-        <div className="absolute inset-x-0 bottom-0 p-4">
-          {post.category && (
-            <p className="text-[10.5px] font-medium uppercase tracking-wider text-coral mb-1.5 font-[var(--font-outfit)]">
-              {post.category}
-            </p>
-          )}
-          <h3 className="text-[16px] font-bold text-text-high line-clamp-2 leading-snug font-[var(--font-outfit)]">
-            {post.title}
-          </h3>
         </div>
-      </div>
+      )}
 
-      <div className="p-4 flex-1 flex flex-col">
-        <p className="text-[12.5px] text-text-medium line-clamp-3 mb-3 leading-relaxed">
-          {excerpt}
+      {/* 본문 + '자세히 보기' */}
+      <div className="px-5 py-4 flex-1 flex flex-col">
+        <p className="text-[13px] text-text-medium line-clamp-4 mb-3 leading-relaxed">
+          {body}
         </p>
+        {isLong && (
+          <span className="text-[12px] font-medium text-coral mb-2 group-hover:text-coral-hover">
+            자세히 보기 →
+          </span>
+        )}
         <div className="mt-auto flex items-center gap-2 text-[11px] text-text-muted">
           <span>{formatPublished(post.publishedAt)}</span>
           {post.readTimeMinutes && (
