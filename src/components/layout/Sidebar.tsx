@@ -154,14 +154,29 @@ export function Sidebar() {
 
       <Link
         href="/submit"
-        className="group relative flex flex-col items-center justify-center gap-0.5 rounded-xl bg-coral px-5 py-4 font-semibold text-coral-ink shadow-pop ring-1 ring-coral-line/40 transition-all hover:bg-coral-hover hover:scale-[1.02] hover:shadow-[0_8px_28px_rgba(233,79,61,0.45)]"
+        className="group relative flex items-center gap-3 rounded-xl bg-coral px-4 py-3.5 font-semibold text-coral-ink shadow-pop ring-1 ring-coral-line/40 transition-all hover:bg-coral-hover hover:scale-[1.02] hover:shadow-[0_8px_28px_rgba(233,79,61,0.45)]"
       >
-        <span className="flex items-center gap-2 text-[16px] leading-none">
-          <PlusIcon />
-          Submit Project
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral-ink/15 ring-1 ring-coral-ink/30">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <line x1="12" x2="12" y1="5" y2="19" />
+            <line x1="5" x2="19" y1="12" y2="12" />
+          </svg>
         </span>
-        <span className="text-[11.5px] font-medium opacity-90">
-          프로젝트 등록
+        <span className="flex flex-col leading-tight text-left">
+          <span className="text-[15px]">Submit Project</span>
+          <span className="text-[11.5px] font-medium opacity-90">
+            프로젝트 등록
+          </span>
         </span>
       </Link>
 
