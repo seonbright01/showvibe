@@ -183,6 +183,13 @@ export default function TermsPage() {
                 으로 합니다.
               </p>
             </section>
+
+            <section className="mt-10 pt-6 border-t border-stroke">
+              <p className="text-sm text-text-muted italic">
+                본 약관은 외부 법무 검토 전 임시본이며, 사업자 등록 및 정식
+                법무 자문 후 정식판으로 업데이트됩니다.
+              </p>
+            </section>
           </div>
         </article>
       </main>
