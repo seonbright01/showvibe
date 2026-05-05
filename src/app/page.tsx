@@ -304,36 +304,55 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vibePosts.map((post) => (
-                <Link
-                  key={post.slug}
-                  href={`/posts/${post.slug}`}
-                  className="group block bg-bg-surface border border-stroke rounded-xl overflow-hidden hover:border-coral/40 transition-colors"
-                >
-                  <div className="aspect-[16/9] bg-gradient-to-br from-coral/30 via-coral/10 to-claimed/20 flex items-end p-4">
-                    {post.category && (
-                      <span className="text-[10.5px] font-mono uppercase tracking-wide px-2 py-0.5 rounded bg-bg-base/80 backdrop-blur border border-stroke text-text-high">
-                        {post.category}
-                      </span>
+              {vibePosts.map((post) => {
+                const body =
+                  post.excerpt ??
+                  post.bodyMd.replace(/[#*_`>]/g, '').trim()
+                const isLong = body.length > 160 || post.bodyMd.length > 240
+                return (
+                  <Link
+                    key={post.slug}
+                    href={`/posts/${post.slug}`}
+                    className="group flex flex-col bg-bg-surface border border-stroke rounded-xl overflow-hidden hover:border-coral/40 transition-colors"
+                  >
+                    <div className="px-5 pt-5 pb-3">
+                      {post.category && (
+                        <p className="text-[10.5px] font-medium uppercase tracking-wider text-coral mb-2 font-[var(--font-outfit)]">
+                          {post.category}
+                        </p>
+                      )}
+                      <h3 className="text-[16px] font-bold text-text-high line-clamp-2 leading-snug group-hover:text-coral transition-colors font-[var(--font-outfit)]">
+                        {post.title}
+                      </h3>
+                    </div>
+                    {post.coverImageUrl && (
+                      <div className="relative aspect-[16/9] bg-bg-elevated">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={post.coverImageUrl}
+                          alt={post.title}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      </div>
                     )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-[15px] font-bold text-text-high mb-2 line-clamp-2 group-hover:text-coral transition-colors font-[var(--font-outfit)]">
-                      {post.title}
-                    </h3>
-                    {post.excerpt && (
-                      <p className="text-[12.5px] text-text-medium leading-relaxed mb-3 line-clamp-3">
-                        {post.excerpt}
+                    <div className="px-5 py-4 flex-1 flex flex-col">
+                      <p className="text-[13px] text-text-medium leading-relaxed mb-3 line-clamp-4">
+                        {body}
                       </p>
-                    )}
-                    {post.publishedAt && (
-                      <p className="text-[11px] text-text-muted">
-                        {formatDate(post.publishedAt)}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
+                      {isLong && (
+                        <span className="text-[12px] font-medium text-coral mb-2 group-hover:text-coral-hover">
+                          자세히 보기 →
+                        </span>
+                      )}
+                      {post.publishedAt && (
+                        <p className="mt-auto text-[11px] text-text-muted">
+                          {formatDate(post.publishedAt)}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </section>
         )}
