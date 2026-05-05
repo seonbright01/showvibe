@@ -7,6 +7,7 @@ import { ProjectCard } from '@/components/project/ProjectCard'
 import { CommentList } from '@/components/comments/CommentList'
 import { getPostBySlug } from '@/lib/posts/queries'
 import { getSitesByIds } from '@/lib/sites/queries'
+import { serializeJsonLd } from '@/lib/seo/json-ld'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -129,7 +130,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleSchema) }}
       />
       <main className="flex-1">
         <div className="mx-auto max-w-[1200px] px-6 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-10">
