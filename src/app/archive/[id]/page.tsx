@@ -1,31 +1,23 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { SourceBadge, ToolBadge } from "@/components/ui/Badge";
-import {
-  MOCK_SITES,
-  MOCK_ANALYSES,
-  MOCK_MEDIA,
-} from "@/data/mock";
-import type { Site } from "@/types";
+import { getSiteById } from "@/lib/sites/queries";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-function findSite(id: string): Site {
-  const found = MOCK_SITES.find((s) => s.id === id);
-  if (found) return found;
-  const firstArchived = MOCK_SITES.find((s) => s.status === "archived");
-  if (firstArchived) return firstArchived;
-  return MOCK_SITES[0];
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const site = findSite(id);
+  const enriched = await getSiteById(id);
+  if (!enriched) {
+    return { title: "Archive — ShowVibe" };
+  }
+  const { site } = enriched;
   return {
     title: `${site.name} (Archived) — ShowVibe`,
     description: `${site.name}은(는) 현재 접속되지 않는 프로젝트입니다. ShowVibe Archive에 보존된 메타데이터.`,
@@ -48,9 +40,11 @@ function formatIsoDate(iso: string): string {
 
 export default async function ArchiveDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const site = findSite(id);
-  const analysis = MOCK_ANALYSES.find((a) => a.siteId === site.id);
-  const media = MOCK_MEDIA.find((m) => m.siteId === site.id);
+  const enriched = await getSiteById(id);
+  if (!enriched) {
+    notFound();
+  }
+  const { site, analysis, media } = enriched;
   const lastActiveLabel = formatKoreanDate(site.lastActiveAt);
   const toolName = analysis?.toolGuess ?? site.sourcePlatform;
 
