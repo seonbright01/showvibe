@@ -1,36 +1,15 @@
 import Link from "next/link";
 import { ShowVibeLogo } from "@/components/ui/Logo";
 
-const EXPLORE_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/chart", label: "Chart" },
-  { href: "/explore", label: "Explore" },
-  { href: "/makers", label: "Makers" },
-  { href: "/posts", label: "Posts" },
-  { href: "/archive", label: "Archive" },
-  { href: "/library", label: "Library" },
-] as const;
-
-const MAKER_LINKS = [
-  { href: "/submit", label: "Submit Project" },
-  { href: "/claim", label: "Claim Project" },
-] as const;
-
 const LEGAL_LINKS = [
-  { href: "/takedown", label: "Copyright / Takedown Request" },
-  { href: "/takedown?type=removal", label: "Site Removal Request" },
-  { href: "/takedown?type=privacy", label: "Privacy / Personal Information Report" },
+  { href: "/takedown", label: "Takedown Request" },
   { href: "/legal/terms", label: "Terms of Service" },
   { href: "/legal/privacy", label: "Privacy Policy" },
   { href: "/legal/disclaimer", label: "Disclaimer" },
-  { href: "/legal/bot-policy", label: "Bot / Data Collection Policy" },
-  { href: "/contact", label: "Contact" },
 ] as const;
 
 const HIGHLIGHTED_LEGAL_PATHS = new Set<string>([
   "/takedown",
-  "/takedown?type=removal",
-  "/takedown?type=privacy",
 ]);
 
 function FooterLogo() {
@@ -75,31 +54,19 @@ export default function Footer() {
     <footer className="bg-bg-surface border-t border-stroke">
       {/* 본문 페이지(max-w-[1200px] px-6)와 동일한 컨테이너로 좌우 정렬 일치 */}
       <div className="mx-auto max-w-[1200px] px-6 py-10 lg:py-12">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-12">
-          {/* 브랜드 — 모바일 2열 전체, md+에서 4컬럼 폭 */}
-          <div className="col-span-2 md:col-span-4">
+        <div className="grid grid-cols-1 gap-y-8 md:grid-cols-12 md:gap-x-6">
+          {/* 브랜드 */}
+          <div className="md:col-span-7">
             <FooterLogo />
-            <p className="mt-3 text-[13px] text-text-medium leading-relaxed max-w-xs">
+            <p className="mt-3 text-[13px] text-text-medium leading-relaxed max-w-md">
               Discover the best vibe-coded projects, track what stays alive, and
               connect with the makers behind them.
             </p>
             <SocialLinks />
           </div>
 
-          <FooterColumn title="Explore" cols="md:col-span-2">
-            {EXPLORE_LINKS.map((link) => (
-              <FooterLink key={link.href} href={link.href} label={link.label} />
-            ))}
-          </FooterColumn>
-
-          <FooterColumn title="For Makers" cols="md:col-span-2">
-            {MAKER_LINKS.map((link) => (
-              <FooterLink key={link.href} href={link.href} label={link.label} />
-            ))}
-          </FooterColumn>
-
-          {/* Legal & Requests — 항목 많아 4컬럼 폭 */}
-          <FooterColumn title="Legal & Requests" cols="md:col-span-4">
+          {/* Legal & Requests */}
+          <FooterColumn title="Legal & Requests" cols="md:col-span-5">
             {LEGAL_LINKS.map((link) => (
               <FooterLink
                 key={link.href}

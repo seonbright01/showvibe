@@ -56,9 +56,6 @@ export function AvatarPicker({
           )
         })}
       </div>
-      <p className="text-[11px] text-text-muted">
-        총 10개 — 남 4 / 여 4 / 강아지 / 고양이
-      </p>
     </div>
   )
 }

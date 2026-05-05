@@ -11,6 +11,7 @@ const ADMIN_NAV = [
   { href: '/admin/takedowns', label: 'Takedowns', icon: '⚠' },
   { href: '/admin/comments', label: 'Comments', icon: '💬' },
   { href: '/admin/health', label: 'Site Health', icon: '◉' },
+  { href: '/account/edit', label: '내 프로필', icon: '👤' },
 ] as const
 
 export default async function AdminLayout({

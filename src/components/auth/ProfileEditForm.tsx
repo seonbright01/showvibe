@@ -115,9 +115,6 @@ export function ProfileEditForm({
                 ← 기존 아바타로 되돌리기
               </button>
             )}
-            <p className="text-[11px] text-text-muted">
-              총 10개 — 남 4 / 여 4 / 강아지 / 고양이
-            </p>
           </>
         )}
       </div>

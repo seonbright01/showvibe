@@ -235,7 +235,7 @@ export function UserMenu({ variant = 'icon' }: UserMenuProps = {}) {
               내 계정
             </Link>
             <Link
-              href="/account/saved"
+              href="/library"
               role="menuitem"
               onClick={() => setOpen(false)}
               className="block px-4 py-2 text-sm text-text-medium hover:text-text-high hover:bg-bg-elevated transition-colors"
@@ -267,7 +267,7 @@ export function UserMenu({ variant = 'icon' }: UserMenuProps = {}) {
               <button
                 type="submit"
                 role="menuitem"
-                className="w-full text-left px-4 py-2 text-sm text-text-medium hover:text-text-high hover:bg-bg-elevated transition-colors"
+                className="w-full text-left px-4 py-2 text-sm font-medium text-coral hover:bg-coral/10 transition-colors"
               >
                 로그아웃
               </button>
