@@ -16,9 +16,13 @@ export async function verifyTurnstile(
 ): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY
 
+  // 보안 (P3.4): fail-closed — secret 미설정 시 항상 reject.
+  // 이전엔 dev 모드에서 fail-open 이었지만, 그 분기가 prod 빌드에 실수로
+  // 들어가면 모든 captcha 통과권 부여. 명시적 dev 우회는
+  // ALLOW_TURNSTILE_INSECURE=1 환경변수 필요 (CI/local 전용).
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') return false
-    return true
+    if (process.env.ALLOW_TURNSTILE_INSECURE === '1') return true
+    return false
   }
 
   const formData = new URLSearchParams()
