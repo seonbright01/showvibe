@@ -3,8 +3,9 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { FormEvent } from 'react'
+import { TOOL_LABELS } from '@/lib/tools'
 
-const TOOL_OPTIONS = ['Cursor', 'Lovable', 'Replit', 'Bolt', 'v0'] as const
+const TOOL_OPTIONS = TOOL_LABELS
 const CATEGORY_OPTIONS = [
   'SaaS',
   'LegalTech',

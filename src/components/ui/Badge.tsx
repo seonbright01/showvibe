@@ -55,22 +55,14 @@ export function SourceBadge({ sourceType }: SourceBadgeProps) {
 
 // === ToolBadge ===
 
-const TOOL_COLORS: Record<string, { color: string; bg: string }> = {
-  Cursor: { color: '#A78BFA', bg: 'rgba(167, 139, 250, 0.15)' },
-  Lovable: { color: '#F472B6', bg: 'rgba(244, 114, 182, 0.15)' },
-  Replit: { color: '#F97316', bg: 'rgba(249, 115, 22, 0.15)' },
-  Bolt: { color: '#FBBF24', bg: 'rgba(251, 191, 36, 0.15)' },
-  v0: { color: '#F3F4F6', bg: 'rgba(243, 244, 246, 0.15)' },
-}
-
-const DEFAULT_TOOL_COLOR = { color: '#9CA3AF', bg: 'rgba(156, 163, 175, 0.15)' }
+import { getToolColor } from '@/lib/tools'
 
 interface ToolBadgeProps {
   tool: string
 }
 
 export function ToolBadge({ tool }: ToolBadgeProps) {
-  const config = TOOL_COLORS[tool] ?? DEFAULT_TOOL_COLOR
+  const config = getToolColor(tool)
 
   return (
     <span

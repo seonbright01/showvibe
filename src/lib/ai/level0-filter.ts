@@ -15,10 +15,17 @@ const TOOL_KEYWORDS: Array<{ pattern: RegExp; weight: number; signal: string; to
   { pattern: /built\s+with\s+v0/i, weight: 25, signal: 'built with v0', tool: 'v0' },
   { pattern: /built\s+with\s+bolt/i, weight: 25, signal: 'built with Bolt', tool: 'bolt' },
   { pattern: /built\s+with\s+windsurf/i, weight: 25, signal: 'built with Windsurf', tool: 'windsurf' },
-  { pattern: /built\s+with\s+claude/i, weight: 20, signal: 'built with Claude', tool: 'claude' },
+  { pattern: /built\s+with\s+claude(?:\s+code)?/i, weight: 22, signal: 'built with Claude (Code)', tool: 'claude code' },
+  { pattern: /\bclaude[-\s]?code\b/i, weight: 22, signal: 'Claude Code mention', tool: 'claude code' },
+  { pattern: /built\s+with\s+codex/i, weight: 22, signal: 'built with Codex', tool: 'chatgpt codex' },
+  { pattern: /\b(?:openai\s+|chatgpt\s+)?codex(?:\s+cli)?\b/i, weight: 18, signal: 'Codex mention', tool: 'chatgpt codex' },
+  { pattern: /built\s+with\s+gemini/i, weight: 22, signal: 'built with Gemini', tool: 'gemini cli' },
+  { pattern: /\bgemini[-\s]?cli\b/i, weight: 22, signal: 'Gemini CLI mention', tool: 'gemini cli' },
+  { pattern: /\bgithub\s+copilot\b/i, weight: 18, signal: 'GitHub Copilot mention', tool: 'github copilot' },
+  { pattern: /\bcopilot\s+(?:workspace|cli)\b/i, weight: 20, signal: 'Copilot Workspace/CLI', tool: 'github copilot' },
   { pattern: /vibe[-\s]?coded/i, weight: 30, signal: 'vibe-coded keyword', tool: 'unknown' },
   { pattern: /made\s+with\s+lovable/i, weight: 25, signal: 'made with Lovable', tool: 'lovable' },
-  { pattern: /generated\s+by\s+(?:cursor|v0|bolt|lovable)/i, weight: 25, signal: 'AI-generated note', tool: 'unknown' },
+  { pattern: /generated\s+by\s+(?:cursor|v0|bolt|lovable|claude|codex|gemini|copilot)/i, weight: 25, signal: 'AI-generated note', tool: 'unknown' },
 ]
 
 const META_GENERATOR_PATTERN =
