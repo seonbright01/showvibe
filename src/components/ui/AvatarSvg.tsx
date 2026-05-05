@@ -118,12 +118,3 @@ function CatLine() {
   )
 }
 
-export function AllAvatarsPreview({ size = 56 }: { size?: number }) {
-  return (
-    <div className="grid grid-cols-5 gap-3">
-      {AVATAR_PRESETS.map((p: AvatarPreset) => (
-        <AvatarSvg key={p.id} presetId={p.id} size={size} />
-      ))}
-    </div>
-  )
-}
