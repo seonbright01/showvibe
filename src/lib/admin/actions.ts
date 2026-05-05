@@ -65,11 +65,53 @@ export async function archiveSite(siteId: string): Promise<ActionResult> {
   const { supabase } = await ensureAdmin()
   const { error } = await supabase
     .from('sites')
-    .update({ visibility: 'public', status: 'archived' })
+    .update({
+      visibility: 'public',
+      status: 'archived',
+      recheck_eligible_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      block_reason: 'archived: manual by admin',
+    })
     .eq('id', siteId)
   if (error) return { ok: false, error: error.message }
   revalidatePath('/admin/review')
+  revalidatePath('/admin/health')
+  revalidatePath('/archive')
+  revalidatePath(`/projects/${siteId}`)
   return { ok: true }
+}
+
+/** archived 사이트를 active로 되돌림 (수동 복구). monitor가 다시 health-check에 포함시킴. */
+export async function unarchiveSite(siteId: string): Promise<ActionResult> {
+  const { supabase } = await ensureAdmin()
+  const { error } = await supabase
+    .from('sites')
+    .update({
+      visibility: 'public',
+      status: 'active',
+      last_active_at: new Date().toISOString(),
+      recheck_eligible_at: null,
+      block_reason: null,
+    })
+    .eq('id', siteId)
+  if (error) return { ok: false, error: error.message }
+  revalidatePath('/admin/review')
+  revalidatePath('/admin/health')
+  revalidatePath('/archive')
+  revalidatePath(`/projects/${siteId}`)
+  return { ok: true }
+}
+
+/** form action 래퍼 (admin/health 등에서 form action으로 호출) */
+export async function archiveSiteFormAction(formData: FormData): Promise<void> {
+  const siteId = String(formData.get('siteId') ?? '')
+  if (!siteId) return
+  await archiveSite(siteId)
+}
+
+export async function unarchiveSiteFormAction(formData: FormData): Promise<void> {
+  const siteId = String(formData.get('siteId') ?? '')
+  if (!siteId) return
+  await unarchiveSite(siteId)
 }
 
 export async function resolveTakedown(

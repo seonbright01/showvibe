@@ -154,10 +154,15 @@ export function Sidebar() {
 
       <Link
         href="/submit"
-        className="flex items-center justify-center gap-2 rounded-xl bg-coral px-4 py-3 text-[15px] font-semibold text-coral-ink transition-colors hover:bg-coral-hover"
+        className="group relative flex flex-col items-center justify-center gap-0.5 rounded-xl bg-coral px-5 py-4 font-semibold text-coral-ink shadow-pop ring-1 ring-coral-line/40 transition-all hover:bg-coral-hover hover:scale-[1.02] hover:shadow-[0_8px_28px_rgba(233,79,61,0.45)]"
       >
-        <PlusIcon />
-        <span>Submit Project</span>
+        <span className="flex items-center gap-2 text-[16px] leading-none">
+          <PlusIcon />
+          Submit Project
+        </span>
+        <span className="text-[11.5px] font-medium opacity-90">
+          프로젝트 등록
+        </span>
       </Link>
 
       <nav
