@@ -52,7 +52,8 @@ function PostCard({ post }: { post: PostWithAuthor }) {
       href={`/posts/${post.slug}`}
       className="group flex flex-col rounded-xl border border-stroke bg-bg-surface overflow-hidden hover:shadow-lg transition-shadow"
     >
-      <div className={`relative aspect-video bg-gradient-to-br ${gradient}`}>
+      {/* 썸네일: 일러스트 + 제목/카테고리 오버레이 함께 노출 */}
+      <div className={`relative aspect-[4/3] bg-gradient-to-br ${gradient}`}>
         {cover && (
           <Image
             src={cover}
@@ -62,18 +63,22 @@ function PostCard({ post }: { post: PostWithAuthor }) {
             className="object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-bg-base/20" />
+        {/* 하단 그라디언트 오버레이로 텍스트 가독성 확보 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-bg-surface via-bg-surface/40 to-transparent" />
+
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          {post.category && (
+            <p className="text-[10.5px] font-medium uppercase tracking-wider text-coral mb-1.5 font-[var(--font-outfit)]">
+              {post.category}
+            </p>
+          )}
+          <h3 className="text-[16px] font-bold text-text-high line-clamp-2 leading-snug font-[var(--font-outfit)]">
+            {post.title}
+          </h3>
+        </div>
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
-        {post.category && (
-          <p className="text-[10.5px] font-medium uppercase tracking-wider text-coral mb-1.5 font-[var(--font-outfit)]">
-            {post.category}
-          </p>
-        )}
-        <h3 className="text-[15px] font-semibold text-text-high mb-1.5 line-clamp-2 leading-snug">
-          {post.title}
-        </h3>
         <p className="text-[12.5px] text-text-medium line-clamp-3 mb-3 leading-relaxed">
           {excerpt}
         </p>
