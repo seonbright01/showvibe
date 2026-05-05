@@ -11,7 +11,9 @@ export const metadata: Metadata = {
     '주간 핫이슈, 트렌드 분석, 도구 비교까지. 바이브코딩 디스커버리의 모든 것.',
 }
 
-export const dynamic = 'force-dynamic'
+// ISR: posts는 SSR 트리에 sessionUser가 직접 박히지 않음 (PII 누수 위험 없음).
+// 콘텐츠 변경 빈도가 낮아 5분 revalidate.
+export const revalidate = 300
 
 const KO_DATE = new Intl.DateTimeFormat('ko-KR', {
   year: 'numeric',

@@ -16,6 +16,7 @@ import { getSessionUser } from "@/lib/auth/guards";
 import { getLikeStatesForSites } from "@/lib/social/queries";
 import type { ChartEntry as DomainChartEntry } from "@/types";
 import Link from "next/link";
+import Image from "next/image";
 
 function toDomainChartEntry(e: ChartEntryDb, isAuthenticated: boolean): DomainChartEntry {
   const numericChange = e.change === 'up' ? e.delta : e.change === 'down' ? -Math.abs(e.delta) : 0;
@@ -49,6 +50,9 @@ export default async function HomePage() {
   const isAuthenticated = Boolean(sessionUser)
   const chartEntries = chart.map((e) => toDomainChartEntry(e, isAuthenticated));
 
+  // getLikeStatesForSites는 위 Promise.all의 결과(site IDs)에 의존하므로
+  // 같은 Promise.all에 합칠 수 없음 — site IDs를 모은 뒤 두 번째 단계로 호출.
+  // sessionUser는 첫 단계에서 이미 병렬로 조회됨.
   const allSiteIds = Array.from(
     new Set([
       ...newlyDiscovered.map((e) => e.site.id),
@@ -213,11 +217,12 @@ export default async function HomePage() {
                     </div>
                     {post.coverImageUrl && (
                       <div className="relative aspect-[16/9] bg-bg-elevated">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={post.coverImageUrl}
                           alt={post.title}
-                          className="absolute inset-0 h-full w-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 33vw, 100vw"
+                          className="object-cover"
                         />
                       </div>
                     )}
