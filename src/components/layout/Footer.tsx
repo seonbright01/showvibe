@@ -8,77 +8,53 @@ const LEGAL_LINKS = [
   { href: "/legal/disclaimer", label: "Disclaimer" },
 ] as const;
 
-const HIGHLIGHTED_LEGAL_PATHS = new Set<string>([
-  "/takedown",
-]);
-
-function FooterLogo() {
-  return (
-    <Link href="/" className="inline-flex items-center" aria-label="ShowVibe — Home">
-      <ShowVibeLogo width={120} />
-    </Link>
-  );
-}
-
-function SocialLinks() {
-  return (
-    <div className="flex items-center gap-3 mt-4">
-      <a
-        href="https://x.com/showvibe"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="X (Twitter)"
-        className="text-text-muted hover:text-coral transition-colors"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-      </a>
-      <a
-        href="https://github.com/showvibe"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="GitHub"
-        className="text-text-muted hover:text-coral transition-colors"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-        </svg>
-      </a>
-    </div>
-  );
-}
+const HIGHLIGHTED_LEGAL_PATHS = new Set<string>(["/takedown"]);
 
 export default function Footer() {
   return (
     <footer className="bg-bg-surface border-t border-stroke">
       {/* 본문 페이지(max-w-[1200px] px-6)와 동일한 컨테이너로 좌우 정렬 일치 */}
       <div className="mx-auto max-w-[1200px] px-6 py-10 lg:py-12">
-        <div className="grid grid-cols-1 gap-y-8 md:grid-cols-12 md:gap-x-6">
-          {/* 브랜드 */}
-          <div className="md:col-span-7">
-            <FooterLogo />
-            <p className="mt-3 text-[13px] text-text-medium leading-relaxed max-w-md">
-              Discover the best vibe-coded projects, track what stays alive, and
-              connect with the makers behind them.
-            </p>
-            <SocialLinks />
-          </div>
-
-          {/* Legal & Requests */}
-          <FooterColumn title="Legal & Requests" cols="md:col-span-5">
-            {LEGAL_LINKS.map((link) => (
-              <FooterLink
-                key={link.href}
-                href={link.href}
-                label={link.label}
-                emphasized={HIGHLIGHTED_LEGAL_PATHS.has(link.href)}
-              />
-            ))}
-          </FooterColumn>
+        {/* 1행: 브랜드 (로고 + 설명) */}
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center"
+            aria-label="ShowVibe — Home"
+          >
+            <ShowVibeLogo width={120} />
+          </Link>
+          <p className="text-[13px] text-text-medium leading-relaxed max-w-md">
+            Discover the best vibe-coded projects, track what stays alive, and
+            connect with the makers behind them.
+          </p>
         </div>
 
-        <div className="mt-10 border-t border-stroke pt-6">
+        {/* 2행: Legal & Requests (가로 한 줄) */}
+        <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-x-6 sm:gap-y-1 sm:flex-wrap">
+          <span className="text-[11.5px] font-semibold uppercase tracking-wider text-text-high">
+            Legal &amp; Requests
+          </span>
+          {LEGAL_LINKS.map((link) => {
+            const emphasized = HIGHLIGHTED_LEGAL_PATHS.has(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-[13px] transition-colors hover:text-coral ${
+                  emphasized
+                    ? "text-text-high font-medium"
+                    : "text-text-medium"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* 3행: 디스클레이머 + 카피라이트 */}
+        <div className="mt-8 border-t border-stroke pt-6">
           <p className="text-[11.5px] text-text-muted leading-relaxed">
             showvibe는 Cursor, Lovable, Replit, Bolt, v0 등 언급된 특정 AI 코딩
             도구 및 서비스와 공식 제휴 관계가 아닙니다. 각 상표는 해당 권리자에게
@@ -91,46 +67,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
-
-function FooterColumn({
-  title,
-  children,
-  cols,
-}: {
-  title: string
-  children: React.ReactNode
-  cols: string
-}) {
-  return (
-    <div className={cols}>
-      <h3 className="text-[11.5px] font-semibold uppercase tracking-wider text-text-high mb-3">
-        {title}
-      </h3>
-      <ul className="flex flex-col gap-2">{children}</ul>
-    </div>
-  )
-}
-
-function FooterLink({
-  href,
-  label,
-  emphasized,
-}: {
-  href: string
-  label: string
-  emphasized?: boolean
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className={`text-[13px] leading-snug transition-colors hover:text-coral ${
-          emphasized ? 'text-text-high font-medium' : 'text-text-medium'
-        }`}
-      >
-        {label}
-      </Link>
-    </li>
-  )
 }
