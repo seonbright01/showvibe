@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       claims: {
@@ -138,8 +113,9 @@ export type Database = {
           created_at: string
           id: string
           like_count: number
+          post_id: string | null
           report_count: number
-          site_id: string
+          site_id: string | null
           status: string
           updated_at: string
           user_id: string
@@ -149,8 +125,9 @@ export type Database = {
           created_at?: string
           id?: string
           like_count?: number
+          post_id?: string | null
           report_count?: number
-          site_id: string
+          site_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -160,13 +137,21 @@ export type Database = {
           created_at?: string
           id?: string
           like_count?: number
+          post_id?: string | null
           report_count?: number
-          site_id?: string
+          site_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_site_id_fkey"
             columns: ["site_id"]
@@ -211,6 +196,65 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: true
             referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          author_user_id: string
+          body_md: string
+          category: string | null
+          cover_image_url: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          published_at: string | null
+          read_time_minutes: number | null
+          related_site_ids: string[]
+          slug: string
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          author_user_id: string
+          body_md: string
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          read_time_minutes?: number | null
+          related_site_ids?: string[]
+          slug: string
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          author_user_id?: string
+          body_md?: string
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          published_at?: string | null
+          read_time_minutes?: number | null
+          related_site_ids?: string[]
+          slug?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -313,6 +357,39 @@ export type Database = {
           },
         ]
       }
+      site_likes: {
+        Row: {
+          created_at: string
+          site_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          site_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          site_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_likes_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_media: {
         Row: {
           captured_at: string
@@ -350,39 +427,6 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      site_likes: {
-        Row: {
-          created_at: string
-          site_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          site_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          site_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "site_likes_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "site_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -472,79 +516,82 @@ export type Database = {
       }
       sites: {
         Row: {
+          block_reason: string | null
           claimed_by_user_id: string | null
           created_at: string
           description: string | null
+          editors_note: string | null
+          editors_pick_updated_at: string | null
+          editors_pick_updated_by: string | null
           first_discovered_at: string
           id: string
           is_claimed: boolean
+          is_editors_pick: boolean
           last_active_at: string
           last_checked_at: string
           name: string
           normalized_url: string
+          recheck_count: number
+          recheck_eligible_at: string | null
+          screenshot_attempts: number
           source_platform: string | null
           source_type: string
           status: string
           updated_at: string
           url: string
           visibility: string
-          block_reason: string | null
-          recheck_eligible_at: string | null
-          recheck_count: number
-          is_editors_pick: boolean
-          editors_note: string | null
-          editors_pick_updated_at: string | null
-          editors_pick_updated_by: string | null
         }
         Insert: {
+          block_reason?: string | null
           claimed_by_user_id?: string | null
           created_at?: string
           description?: string | null
+          editors_note?: string | null
+          editors_pick_updated_at?: string | null
+          editors_pick_updated_by?: string | null
           first_discovered_at?: string
           id?: string
           is_claimed?: boolean
+          is_editors_pick?: boolean
           last_active_at?: string
           last_checked_at?: string
           name: string
           normalized_url: string
+          recheck_count?: number
+          recheck_eligible_at?: string | null
+          screenshot_attempts?: number
           source_platform?: string | null
           source_type: string
           status?: string
           updated_at?: string
           url: string
           visibility?: string
-          block_reason?: string | null
-          recheck_eligible_at?: string | null
-          recheck_count?: number
-          is_editors_pick?: boolean
-          editors_note?: string | null
-          editors_pick_updated_at?: string | null
-          editors_pick_updated_by?: string | null
         }
         Update: {
+          block_reason?: string | null
           claimed_by_user_id?: string | null
           created_at?: string
           description?: string | null
+          editors_note?: string | null
+          editors_pick_updated_at?: string | null
+          editors_pick_updated_by?: string | null
           first_discovered_at?: string
           id?: string
           is_claimed?: boolean
+          is_editors_pick?: boolean
           last_active_at?: string
           last_checked_at?: string
           name?: string
           normalized_url?: string
+          recheck_count?: number
+          recheck_eligible_at?: string | null
+          screenshot_attempts?: number
           source_platform?: string | null
           source_type?: string
           status?: string
           updated_at?: string
           url?: string
           visibility?: string
-          block_reason?: string | null
-          recheck_eligible_at?: string | null
-          recheck_count?: number
-          is_editors_pick?: boolean
-          editors_note?: string | null
-          editors_pick_updated_at?: string | null
-          editors_pick_updated_by?: string | null
         }
         Relationships: [
           {
@@ -554,61 +601,9 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      posts: {
-        Row: {
-          author_user_id: string
-          body_md: string
-          category: string | null
-          cover_image_url: string | null
-          created_at: string
-          excerpt: string | null
-          id: string
-          published_at: string | null
-          read_time_minutes: number | null
-          related_site_ids: string[] | null
-          slug: string
-          title: string
-          updated_at: string
-          view_count: number
-        }
-        Insert: {
-          author_user_id: string
-          body_md: string
-          category?: string | null
-          cover_image_url?: string | null
-          created_at?: string
-          excerpt?: string | null
-          id?: string
-          published_at?: string | null
-          read_time_minutes?: number | null
-          related_site_ids?: string[] | null
-          slug: string
-          title: string
-          updated_at?: string
-          view_count?: number
-        }
-        Update: {
-          author_user_id?: string
-          body_md?: string
-          category?: string | null
-          cover_image_url?: string | null
-          created_at?: string
-          excerpt?: string | null
-          id?: string
-          published_at?: string | null
-          read_time_minutes?: number | null
-          related_site_ids?: string[] | null
-          slug?: string
-          title?: string
-          updated_at?: string
-          view_count?: number
-        }
-        Relationships: [
           {
-            foreignKeyName: "posts_author_user_id_fkey"
-            columns: ["author_user_id"]
+            foreignKeyName: "sites_editors_pick_updated_by_fkey"
+            columns: ["editors_pick_updated_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -626,7 +621,7 @@ export type Database = {
           published_at: string | null
           reply_count: number
           slug: string
-          tags: string[] | null
+          tags: string[]
           title: string
           updated_at: string
           view_count: number
@@ -641,7 +636,7 @@ export type Database = {
           published_at?: string | null
           reply_count?: number
           slug: string
-          tags?: string[] | null
+          tags?: string[]
           title: string
           updated_at?: string
           view_count?: number
@@ -656,7 +651,7 @@ export type Database = {
           published_at?: string | null
           reply_count?: number
           slug?: string
-          tags?: string[] | null
+          tags?: string[]
           title?: string
           updated_at?: string
           view_count?: number
@@ -724,28 +719,37 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          banned_at: string | null
+          banned_reason: string | null
           bio: string | null
           created_at: string
           email: string
           id: string
+          is_banned: boolean
           name: string
           role: string
         }
         Insert: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           created_at?: string
           email: string
           id: string
+          is_banned?: boolean
           name: string
           role?: string
         }
         Update: {
           avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           created_at?: string
           email?: string
           id?: string
+          is_banned?: boolean
           name?: string
           role?: string
         }
@@ -899,9 +903,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

@@ -36,6 +36,7 @@ interface JoinedRow {
   block_reason?: string | null
   recheck_eligible_at?: string | null
   recheck_count?: number
+  screenshot_attempts?: number
   // joined relations
   site_analysis?: unknown
   site_media?: unknown
@@ -65,6 +66,7 @@ function shapeRow(row: JoinedRow): SiteWithRelations {
     block_reason: rest.block_reason ?? null,
     recheck_eligible_at: rest.recheck_eligible_at ?? null,
     recheck_count: rest.recheck_count ?? 0,
+    screenshot_attempts: rest.screenshot_attempts ?? 0,
     is_editors_pick: false,
     editors_note: null,
     editors_pick_updated_at: null,
