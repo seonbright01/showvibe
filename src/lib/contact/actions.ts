@@ -8,9 +8,13 @@ export type ContactResult =
   | { ok: false; error: string }
 
 const NAME_MAX = 60
-const SUBJECT_MAX = 120
+const SUBJECT_MAX = 200
 const MESSAGE_MIN = 10
 const MESSAGE_MAX = 4000
+
+// 보안 (P3.7): Reply-To header injection 방지를 위한 strict email regex.
+// RFC 단순화: local + @ + domain.tld (TLD 2자 이상). \r\n 등 헤더 분리자 차단.
+const EMAIL_RE = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/
 
 function escapeHtml(s: string): string {
   return s
@@ -19,6 +23,11 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+// 보안 (P3.7): SMTP/SES header 에 들어가는 필드의 \r\n strip — header injection 차단.
+function stripCrlf(s: string): string {
+  return s.replace(/[\r\n]+/g, ' ')
 }
 
 export async function sendContactMessage(
@@ -34,7 +43,8 @@ export async function sendContactMessage(
   if (!name || name.length > NAME_MAX) {
     return { ok: false, error: '이름은 1~60자 사이여야 합니다.' }
   }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // 보안 (P3.7): strict email regex + 길이 cap (RFC 5321 local 64 + domain 255 = 320).
+  if (!email || email.length > 320 || !EMAIL_RE.test(email)) {
     return { ok: false, error: '올바른 이메일을 입력해주세요.' }
   }
   if (subject.length > SUBJECT_MAX) {
@@ -60,11 +70,13 @@ export async function sendContactMessage(
     process.env.SES_FROM_EMAIL ||
     'support@showvibe.app'
 
-  const finalSubject = subject || '(제목 없음)'
+  // 보안 (P3.7): SMTP header 에 들어가는 필드 — \r\n 차단 + 길이 cap.
+  const safeSubject = stripCrlf(subject).slice(0, SUBJECT_MAX)
+  const finalSubject = safeSubject || '(제목 없음)'
   const text = [
     `이름: ${name}`,
     `이메일: ${email}`,
-    `제목: ${subject || '(없음)'}`,
+    `제목: ${safeSubject || '(없음)'}`,
     '',
     '----- 문의 내용 -----',
     message,
@@ -76,7 +88,7 @@ export async function sendContactMessage(
       <table style="font-size:13px;border-collapse:collapse;">
         <tr><td style="padding:4px 12px 4px 0;color:#666;">이름</td><td>${escapeHtml(name)}</td></tr>
         <tr><td style="padding:4px 12px 4px 0;color:#666;">이메일</td><td>${escapeHtml(email)}</td></tr>
-        <tr><td style="padding:4px 12px 4px 0;color:#666;">제목</td><td>${escapeHtml(subject || '(없음)')}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#666;">제목</td><td>${escapeHtml(safeSubject || '(없음)')}</td></tr>
       </table>
       <hr style="border:none;border-top:1px solid #ddd;margin:16px 0;" />
       <pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;">${escapeHtml(message)}</pre>

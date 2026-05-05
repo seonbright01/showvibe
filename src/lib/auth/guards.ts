@@ -8,6 +8,7 @@ interface UserProfile {
   email: string | null
   avatar_url: string | null
   role: string | null
+  is_banned: boolean
 }
 
 export interface SessionUser extends User {
@@ -25,7 +26,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
     const { data: profile } = await supabase
       .from('users')
-      .select('id, name, email, avatar_url, role')
+      .select('id, name, email, avatar_url, role, is_banned')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -42,6 +43,17 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 export async function requireAuth(): Promise<SessionUser> {
   const user = await getSessionUser()
   if (!user) redirect('/signin')
+  return user
+}
+
+// 보안 (P3.1): is_banned 사용자는 mutation 차단. 단순 페이지 접근(requireAuth)
+// 과 달리 댓글/제출/신고 같은 쓰기 액션에서 이 가드를 사용해야 함.
+// throw 한 Error 메세지는 클라이언트로 노출되어 사용자에게 표시됨.
+export async function requireActiveAuth(): Promise<SessionUser> {
+  const user = await requireAuth()
+  if (user.profile?.is_banned) {
+    throw new Error('이용이 정지된 계정입니다')
+  }
   return user
 }
 

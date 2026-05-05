@@ -32,6 +32,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // 보안 (P3.3): server action CSRF 방어 — 명시된 origin 만 허용.
+  // 도메인 SSOT 는 showvibe.app (showvibe.com 은 사용 금지).
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["showvibe.app", "localhost:3000"],
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -56,6 +63,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.dicebear.com",
         pathname: "/**",
+      },
+      // 보안 (P3.3): R2 public CDN — posts/screenshots prefix 만 허용
+      // (전체 `/**` 면 임의 경로 이미지가 외부 hotlink 우회 SSRF 벡터로 사용 가능).
+      {
+        protocol: "https",
+        hostname: "pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev",
+        pathname: "/posts/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev",
+        pathname: "/screenshots/**",
       },
     ],
   },

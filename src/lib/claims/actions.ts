@@ -7,11 +7,6 @@ import { initClaimSchema, verifyClaimSchema } from './validators'
 import { verifyMetaTag } from './meta-tag-verify'
 import { verifyDns } from './dns-verify'
 
-type SupabaseUntyped = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from: (table: string) => any
-}
-
 function normalizeUrl(raw: string): string {
   try {
     const u = new URL(raw)
@@ -59,14 +54,38 @@ export async function initClaim(input: unknown): Promise<InitClaimResult> {
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: '로그인이 필요합니다' }
 
-  const db = supabase as unknown as SupabaseUntyped
+  // 보안 (P3.1): is_banned 체크
+  const { data: profile } = await supabase
+    .from('users')
+    .select('is_banned')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (profile?.is_banned) {
+    return { ok: false, error: '이용이 정지된 계정입니다' }
+  }
+
+  // 보안 (P3.4): 같은 user 가 60초 내 3건 초과 claim 시 reject (brute-force 방지).
+  const CLAIM_RATE_LIMIT_PER_MIN = 3
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  const { count } = await supabase
+    .from('claims')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', sinceIso)
+  if ((count ?? 0) >= CLAIM_RATE_LIMIT_PER_MIN) {
+    return {
+      ok: false,
+      error: '너무 빠르게 클레임을 시도하고 있습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
+
   const normalized = normalizeUrl(parse.data.siteUrl)
 
-  const { data: site } = (await db
+  const { data: site } = await supabase
     .from('sites')
     .select('id')
     .eq('normalized_url', normalized)
-    .maybeSingle()) as { data: { id: string } | null }
+    .maybeSingle()
 
   if (!site) {
     return {
@@ -78,7 +97,7 @@ export async function initClaim(input: unknown): Promise<InitClaimResult> {
 
   const verificationToken = `showvibe-verify-${randomUUID().slice(0, 16)}`
 
-  const { data: claim, error } = (await db
+  const { data: claim, error } = await supabase
     .from('claims')
     .insert({
       site_id: site.id,
@@ -88,10 +107,7 @@ export async function initClaim(input: unknown): Promise<InitClaimResult> {
       verification_token: verificationToken,
     })
     .select('id, verification_token')
-    .single()) as {
-    data: { id: string; verification_token: string } | null
-    error: { message: string } | null
-  }
+    .single()
 
   if (error || !claim) {
     return { ok: false, error: error?.message ?? 'Claim 생성 실패' }
@@ -100,7 +116,7 @@ export async function initClaim(input: unknown): Promise<InitClaimResult> {
   return {
     ok: true,
     claimId: claim.id,
-    token: claim.verification_token,
+    token: claim.verification_token ?? verificationToken,
     method: parse.data.method,
   }
 }
@@ -115,8 +131,7 @@ export async function verifyClaim(input: unknown): Promise<VerifyClaimResult> {
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: '로그인이 필요합니다' }
 
-  const db = supabase as unknown as SupabaseUntyped
-  const { data: claim } = (await db
+  const { data: claim } = (await supabase
     .from('claims')
     .select(
       'id, site_id, claim_method, verification_token, status, sites(url, normalized_url)',
@@ -165,7 +180,7 @@ export async function verifyClaim(input: unknown): Promise<VerifyClaimResult> {
     }
   }
 
-  await db
+  await supabase
     .from('claims')
     .update({ status: 'verified', verified_at: new Date().toISOString() })
     .eq('id', claim.id)
@@ -179,7 +194,7 @@ export async function verifyClaim(input: unknown): Promise<VerifyClaimResult> {
   // 차단한 사이트를 강제 활성화할 수 있었음. blocked 사이트는 admin 검수 콘솔
   // (/admin/review)에서만 unblock 가능. 클레임 자체는 소유권만 부여.
 
-  await db.from('sites').update(siteUpdates).eq('id', claim.site_id)
+  await supabase.from('sites').update(siteUpdates).eq('id', claim.site_id)
 
   revalidatePath(`/projects/${claim.site_id}`)
   return { ok: true, status: 'verified' }

@@ -5,11 +5,6 @@ import { sendEmail } from '@/lib/email/ses'
 import { verifyTurnstile } from '@/lib/turnstile/verify'
 import { takedownSchema, type TakedownInput } from './validators'
 
-type SupabaseUntyped = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from: (table: string) => any
-}
-
 export type SubmitTakedownResult =
   | { ok: true; message: string }
   | { ok: false; error: string }
@@ -71,34 +66,50 @@ export async function submitTakedown(
     if (!ok) return { ok: false, error: 'Captcha 인증 실패' }
   }
 
-  let hostname: string
+  // 보안: ILIKE wildcard injection 방지 — origin (protocol + hostname) 정확 매칭만 허용.
+  // sites.normalized_url 은 `${protocol}//${host}${path}` canonical 형태로 저장되므로,
+  // 추가 안전을 위해 eq() 사용. path 가 다른 동일 origin 사이트는 site_id null 처리.
+  let origin: string
   try {
-    hostname = new URL(data.targetUrl).hostname.replace(/^www\./, '')
+    const u = new URL(data.targetUrl)
+    const host = u.host.replace(/^www\./, '').toLowerCase()
+    origin = `${u.protocol}//${host}`
   } catch {
     return { ok: false, error: '올바른 URL이 아닙니다' }
   }
 
-  // 보안: LIKE-injection 방지 — hostname의 % _ \ 제거
-  const safeHostname = hostname.replace(/[%_\\]/g, '')
-
   const supabase = await createClient()
-  const db = supabase as unknown as SupabaseUntyped
 
-  const { data: site } = (await db
+  // 보안 (P3.4): 같은 email 이 60초 내 5건 초과 신고 시 reject (anon spam 방지).
+  const TAKEDOWN_RATE_LIMIT_PER_MIN = 5
+  const sinceIso = new Date(Date.now() - 60_000).toISOString()
+  const { count } = await supabase
+    .from('takedown_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('requester_email', data.email)
+    .gte('created_at', sinceIso)
+  if ((count ?? 0) >= TAKEDOWN_RATE_LIMIT_PER_MIN) {
+    return {
+      ok: false,
+      error: '너무 빠르게 신고하고 있습니다. 잠시 후 다시 시도해주세요.',
+    }
+  }
+
+  const { data: site } = await supabase
     .from('sites')
     .select('id')
-    .ilike('normalized_url', `%${safeHostname}%`)
+    .eq('normalized_url', origin)
     .limit(1)
-    .maybeSingle()) as { data: { id: string } | null }
+    .maybeSingle()
 
-  const { error } = (await db.from('takedown_requests').insert({
+  const { error } = await supabase.from('takedown_requests').insert({
     site_id: site?.id ?? null,
     target_url: data.targetUrl,
     requester_email: data.email,
     request_type: data.requestType,
     reason: data.reason,
     status: 'pending',
-  })) as { error: { message: string } | null }
+  })
 
   if (error) return { ok: false, error: error.message }
 
