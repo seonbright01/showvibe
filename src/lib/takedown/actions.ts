@@ -71,15 +71,17 @@ export async function submitTakedown(
     if (!ok) return { ok: false, error: 'Captcha 인증 실패' }
   }
 
-  let hostname: string
+  // 보안: ILIKE wildcard injection 방지 — origin (protocol + hostname) 정확 매칭만 허용.
+  // sites.normalized_url 은 `${protocol}//${host}${path}` canonical 형태로 저장되므로,
+  // 추가 안전을 위해 eq() 사용. path 가 다른 동일 origin 사이트는 site_id null 처리.
+  let origin: string
   try {
-    hostname = new URL(data.targetUrl).hostname.replace(/^www\./, '')
+    const u = new URL(data.targetUrl)
+    const host = u.host.replace(/^www\./, '').toLowerCase()
+    origin = `${u.protocol}//${host}`
   } catch {
     return { ok: false, error: '올바른 URL이 아닙니다' }
   }
-
-  // 보안: LIKE-injection 방지 — hostname의 % _ \ 제거
-  const safeHostname = hostname.replace(/[%_\\]/g, '')
 
   const supabase = await createClient()
   const db = supabase as unknown as SupabaseUntyped
@@ -87,7 +89,7 @@ export async function submitTakedown(
   const { data: site } = (await db
     .from('sites')
     .select('id')
-    .ilike('normalized_url', `%${safeHostname}%`)
+    .eq('normalized_url', origin)
     .limit(1)
     .maybeSingle()) as { data: { id: string } | null }
 
