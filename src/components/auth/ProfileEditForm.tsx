@@ -30,10 +30,10 @@ export function ProfileEditForm({
   initialPresetId,
 }: ProfileEditFormProps) {
   const router = useRouter()
+  // null = 변경 안함(현재 유지), preset id = 선택한 새 아바타
   const [selectedPreset, setSelectedPreset] = useState<AvatarPresetId | null>(
     initialPresetId,
   )
-  const [keepExisting, setKeepExisting] = useState(initialPresetId === null)
 
   const [state, formAction, pending] = useActionState<
     UpdateProfileResult | null,
@@ -47,7 +47,8 @@ export function ProfileEditForm({
     }
   }, [state, router])
 
-  const avatarValue = keepExisting ? '__keep__' : (selectedPreset ?? 'm1')
+  // selectedPreset이 null이면 서버는 avatar_url 갱신 안함 ('__keep__' sentinel)
+  const avatarValue: string = selectedPreset ?? '__keep__'
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -57,65 +58,60 @@ export function ProfileEditForm({
         </label>
         <input type="hidden" name="avatar" value={avatarValue} />
 
-        {keepExisting && initialAvatarUrl && (
+        {/* 현재 아바타 미리보기 — preset이 아닌 OAuth/외부 URL일 때만 별도 표시 */}
+        {initialAvatarUrl && initialPresetId === null && (
           <div className="flex items-center gap-3 rounded-lg border border-stroke bg-bg-elevated p-3">
             <AvatarImage
               avatarUrl={initialAvatarUrl}
               name={initialName}
-              size={56}
+              size={48}
             />
-            <div className="flex-1 text-[13px] text-text-medium">
-              현재 아바타 유지 중
+            <div className="flex-1 text-[12px] text-text-muted leading-snug">
+              현재 아바타 (외부 계정에서 가져옴).
+              <br />
+              아래 10종 중 선택하면 교체되고, 선택 안 하면 그대로 유지됩니다.
             </div>
-            <button
-              type="button"
-              onClick={() => setKeepExisting(false)}
-              className="text-[12px] text-coral hover:text-coral-hover"
-            >
-              변경하기
-            </button>
           </div>
         )}
 
-        {!keepExisting && (
-          <>
-            <div
-              className="grid grid-cols-5 gap-2 rounded-lg border border-stroke bg-bg-elevated p-3"
-              role="radiogroup"
-              aria-label="프로필 아바타 선택"
-            >
-              {AVATAR_PRESETS.map((p) => {
-                const active = selectedPreset === p.id
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    aria-label={`${CATEGORY_LABEL[p.category]} - ${p.label}`}
-                    onClick={() => setSelectedPreset(p.id)}
-                    className={[
-                      'relative flex items-center justify-center rounded-full p-0.5 transition-all',
-                      active
-                        ? 'ring-2 ring-coral ring-offset-2 ring-offset-bg-elevated scale-105'
-                        : 'opacity-70 hover:opacity-100 hover:scale-105',
-                    ].join(' ')}
-                  >
-                    <AvatarSvg presetId={p.id} size={56} animated={active} />
-                  </button>
-                )
-              })}
-            </div>
-            {initialAvatarUrl && (
+        {/* Picker — 항상 표시 */}
+        <div
+          className="grid grid-cols-5 gap-2 rounded-lg border border-stroke bg-bg-elevated p-3"
+          role="radiogroup"
+          aria-label="프로필 아바타 선택"
+        >
+          {AVATAR_PRESETS.map((p) => {
+            const active = selectedPreset === p.id
+            return (
               <button
+                key={p.id}
                 type="button"
-                onClick={() => setKeepExisting(true)}
-                className="self-start text-[12px] text-text-muted hover:text-text-high"
+                role="radio"
+                aria-checked={active}
+                aria-label={`${CATEGORY_LABEL[p.category]} - ${p.label}`}
+                onClick={() => setSelectedPreset(p.id)}
+                className={[
+                  'relative flex items-center justify-center rounded-full p-0.5 transition-all',
+                  active
+                    ? 'ring-2 ring-coral ring-offset-2 ring-offset-bg-elevated scale-105'
+                    : 'opacity-70 hover:opacity-100 hover:scale-105',
+                ].join(' ')}
               >
-                ← 기존 아바타로 되돌리기
+                <AvatarSvg presetId={p.id} size={56} animated={active} />
               </button>
-            )}
-          </>
+            )
+          })}
+        </div>
+
+        {/* 선택 해제 (현재 유지로 되돌리기) — 사용자가 picker 클릭한 뒤 마음 바꿨을 때 */}
+        {selectedPreset !== null && initialPresetId !== selectedPreset && (
+          <button
+            type="button"
+            onClick={() => setSelectedPreset(initialPresetId)}
+            className="self-start text-[12px] text-text-muted hover:text-text-high"
+          >
+            ← 선택 취소
+          </button>
         )}
       </div>
 
