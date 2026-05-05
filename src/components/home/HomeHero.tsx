@@ -1,8 +1,3 @@
-const MARQUEE_TAGS = [
-  'Cursor', 'Bolt', 'v0', 'Lovable', 'Replit', 'Claude Code',
-  'Vibe-coded', 'Side-Project', 'AI SaaS', 'Indie Hacker',
-] as const
-
 export function HomeHero() {
   return (
     <section className="mx-auto max-w-[1200px] px-6 pt-6">
@@ -26,21 +21,9 @@ export function HomeHero() {
             className="sv-hero-rise text-[13.5px] text-text-medium leading-relaxed max-w-xl"
             style={{ animationDelay: '0.16s' }}
           >
-            Cursor·v0·Bolt·Lovable로 만들어진 사이드 프로젝트를 자동 발견하고,
-            살아있는 것들만 골라 보여드립니다.
+            바이브 코딩 프로젝트 레퍼런스북, 당신의 프로젝트를 업로드하고 시장의
+            반응을 확인하세요.
           </p>
-        </div>
-
-        {/* bottom marquee strip */}
-        <div className="relative z-10 border-t border-stroke bg-bg-base/40 backdrop-blur-sm py-1.5 overflow-hidden">
-          <div className="sv-hero-marquee flex gap-6 whitespace-nowrap text-[11px] text-text-muted font-mono">
-            {[...MARQUEE_TAGS, ...MARQUEE_TAGS].map((tag, i) => (
-              <span key={`${tag}-${i}`} className="flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-coral" />
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
     </section>
