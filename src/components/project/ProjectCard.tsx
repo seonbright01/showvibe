@@ -69,10 +69,9 @@ export function ProjectCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Thumbnail (clickable → detail) */}
-      <Link
-        href={`/projects/${site.id}`}
-        aria-label={`${site.name} 상세 보기`}
+      {/* Thumbnail — stretched-link 패턴: 컨테이너는 div, 내부에 absolute Link로 클릭 영역,
+          Visit 버튼은 Link의 형제로 z-index 위에 올려 nested <a> 회피 */}
+      <div
         className="relative block aspect-video overflow-hidden"
         style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
       >
@@ -91,11 +90,17 @@ export function ProjectCard({
           </div>
         )}
 
-        {/* Hover overlay */}
+        <Link
+          href={`/projects/${site.id}`}
+          aria-label={`${site.name} 상세 보기`}
+          className="absolute inset-0 z-10"
+        />
+
+        {/* Hover overlay — Visit 버튼은 stretched Link 위(z-20)로 올려 클릭 가능 */}
         {isHovered && (
-          <div className="absolute inset-0 flex items-center justify-center gap-2">
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-2">
             {isArchived ? (
-              <span className="rounded-lg bg-bg-elevated/90 px-3 py-1.5 text-[12px] text-text-muted">
+              <span className="pointer-events-auto rounded-lg bg-bg-elevated/90 px-3 py-1.5 text-[12px] text-text-muted">
                 접속 불가 · Archived
               </span>
             ) : (
@@ -103,8 +108,7 @@ export function ProjectCard({
                 href={site.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5 rounded-lg bg-coral px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-coral-hover"
+                className="pointer-events-auto flex items-center gap-1.5 rounded-lg bg-coral px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-coral-hover"
               >
                 <span>↗</span>
                 Visit
@@ -112,7 +116,7 @@ export function ProjectCard({
             )}
           </div>
         )}
-      </Link>
+      </div>
 
       {/* Card body — title + description + badges all clickable to detail */}
       <div className="p-3">
