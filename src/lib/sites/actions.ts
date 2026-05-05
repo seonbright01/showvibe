@@ -97,6 +97,20 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
     })
   }
 
+  // 사용자가 직접 업로드한 스크린샷이 있으면 site_media 에 저장.
+  // site_media 가 존재하면 자동 스크린샷 워커가 자동으로 skip 한다
+  // (fetchSitesNeedingScreenshot 가 site_media 존재 여부로 필터). [정합성]
+  if (data.screenshotUrl) {
+    await db.from('site_media').insert({
+      site_id: inserted.id,
+      media_type: 'screenshot',
+      media_source: 'creator_uploaded',
+      image_url: data.screenshotUrl,
+      image_resolution: 'high',
+      is_primary: true,
+    })
+  }
+
   revalidatePath('/admin/review')
   return { ok: true, siteId: inserted.id }
 }

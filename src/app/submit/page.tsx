@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
 import { TurnstileWidget } from '@/components/turnstile/TurnstileWidget'
 import { submitSite } from '@/lib/sites/actions'
+import { TOOL_LABELS } from '@/lib/tools'
 
 const TURNSTILE_SITEKEY = process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY
 
@@ -21,9 +22,11 @@ const CATEGORIES = [
   'Other',
 ] as const
 
-const TOOLS = ['Cursor', 'Lovable', 'Replit', 'Bolt', 'v0', 'Other'] as const
+const TOOLS: readonly string[] = [...TOOL_LABELS, 'Other']
 
 const DESCRIPTION_MAX = 200
+const SCREENSHOT_MAX_BYTES = 5 * 1024 * 1024
+const SCREENSHOT_ACCEPT = 'image/png,image/jpeg,image/webp'
 
 interface SubmitFormState {
   name: string
@@ -51,6 +54,8 @@ export default function SubmitPage() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const updateField = <K extends keyof SubmitFormState>(
@@ -58,6 +63,36 @@ export default function SubmitPage() {
     value: SubmitFormState[K]
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    setError(null)
+    if (!file) {
+      setScreenshotFile(null)
+      if (screenshotPreview) URL.revokeObjectURL(screenshotPreview)
+      setScreenshotPreview(null)
+      return
+    }
+    if (!SCREENSHOT_ACCEPT.split(',').includes(file.type)) {
+      setError('PNG, JPEG, WebP 이미지만 업로드 가능합니다.')
+      e.target.value = ''
+      return
+    }
+    if (file.size > SCREENSHOT_MAX_BYTES) {
+      setError('스크린샷은 5MB 이하여야 합니다.')
+      e.target.value = ''
+      return
+    }
+    setScreenshotFile(file)
+    if (screenshotPreview) URL.revokeObjectURL(screenshotPreview)
+    setScreenshotPreview(URL.createObjectURL(file))
+  }
+
+  const clearScreenshot = () => {
+    setScreenshotFile(null)
+    if (screenshotPreview) URL.revokeObjectURL(screenshotPreview)
+    setScreenshotPreview(null)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,6 +110,27 @@ export default function SubmitPage() {
     }
 
     startTransition(async () => {
+      // 1) 스크린샷이 선택돼 있으면 먼저 업로드
+      let screenshotUrl: string | undefined = undefined
+      if (screenshotFile) {
+        const fd = new FormData()
+        fd.append('file', screenshotFile)
+        const uploadRes = await fetch('/api/screenshot-upload', {
+          method: 'POST',
+          body: fd,
+        })
+        if (!uploadRes.ok) {
+          const { error: uploadErr } = await uploadRes
+            .json()
+            .catch(() => ({ error: '스크린샷 업로드 실패' }))
+          setError(uploadErr ?? '스크린샷 업로드 실패')
+          return
+        }
+        const json = (await uploadRes.json()) as { url: string }
+        screenshotUrl = json.url
+      }
+
+      // 2) 사이트 등록
       const result = await submitSite({
         name: form.name,
         url: form.url,
@@ -84,6 +140,7 @@ export default function SubmitPage() {
         isCreator: form.isCreator,
         email: form.email || undefined,
         turnstileToken: turnstileToken ?? undefined,
+        screenshotUrl,
       })
 
       if (!result.ok) {
@@ -270,6 +327,76 @@ export default function SubmitPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="screenshot"
+                className="block text-sm font-medium text-text-high mb-2"
+              >
+                Screenshot <span className="text-text-muted text-xs">(선택)</span>
+              </label>
+
+              {screenshotPreview ? (
+                <div className="space-y-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={screenshotPreview}
+                    alt="스크린샷 미리보기"
+                    className="w-full max-h-72 object-contain rounded-lg border border-stroke bg-bg-elevated"
+                  />
+                  <div className="flex items-center gap-2 text-[12px]">
+                    <span className="text-text-muted truncate flex-1">
+                      {screenshotFile?.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearScreenshot}
+                      className="text-coral hover:text-coral-hover"
+                    >
+                      제거
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  htmlFor="screenshot"
+                  className="flex flex-col items-center justify-center gap-2 px-4 py-8 rounded-lg border border-dashed border-stroke bg-bg-elevated/50 hover:bg-bg-elevated cursor-pointer transition-colors"
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-text-muted"
+                    aria-hidden
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                  </svg>
+                  <span className="text-[13px] text-text-medium">
+                    스크린샷 업로드 (PNG/JPEG/WebP, 최대 5MB)
+                  </span>
+                </label>
+              )}
+
+              <input
+                id="screenshot"
+                type="file"
+                accept={SCREENSHOT_ACCEPT}
+                onChange={handleScreenshotChange}
+                className="sr-only"
+              />
+
+              <p className="text-xs text-text-medium mt-2 leading-relaxed">
+                업로드하지 않으면 ShowVibe 자동 수집기가 24시간 안에 캡처합니다.
+                직접 올리면 16:9 와이드샷, 메인 화면 기준 권장.
+              </p>
             </div>
 
             <div>

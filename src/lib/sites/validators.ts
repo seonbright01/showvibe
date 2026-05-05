@@ -9,6 +9,8 @@ export const submitSiteSchema = z.object({
   isCreator: z.boolean(),
   email: z.string().trim().email().optional().or(z.literal('')),
   turnstileToken: z.string().min(1, 'Captcha 인증을 완료해주세요').optional(),
+  /** 사용자가 사전 업로드한 스크린샷 public URL. 없으면 자동 수집 워커가 처리. */
+  screenshotUrl: z.string().url().optional(),
 })
 
 export type SubmitSiteInput = z.infer<typeof submitSiteSchema>
