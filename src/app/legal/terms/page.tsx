@@ -100,7 +100,14 @@ export default function TermsPage() {
                   Bot 정책
                 </a>
                 을 따릅니다. 본인의 사이트 노출을 원치 않을 경우 삭제 요청을
-                접수할 수 있습니다.
+                접수할 수 있습니다. 저작권 침해 신고 및 게시중단 절차는
+                <a
+                  href="/legal/copyright"
+                  className="text-coral hover:text-coral-hover ml-1"
+                >
+                  저작권 정책
+                </a>
+                페이지를 참조해주세요.
               </p>
             </section>
 
