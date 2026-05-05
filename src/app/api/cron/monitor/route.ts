@@ -4,6 +4,7 @@ import { runMonitorStep } from '@/lib/pipeline/runners'
 import type { MonitorBucket } from '@/lib/monitor/run'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 const ALLOWED_BUCKETS: MonitorBucket[] = ['active', 'slow', 'degraded', 'all']

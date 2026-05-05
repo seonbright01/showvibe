@@ -38,38 +38,3 @@ export function ShowVibeLogo({
   );
 }
 
-interface ShowVibeSymbolProps {
-  className?: string;
-  size?: number;
-  variant?: LogoVariant;
-  priority?: boolean;
-}
-
-const SYMBOL_RATIO = 524 / 878;
-
-export function ShowVibeSymbol({
-  className,
-  size = 32,
-  variant = "dark",
-  priority = false,
-}: ShowVibeSymbolProps) {
-  const height = Math.round(size * SYMBOL_RATIO);
-  const src =
-    variant === "white"
-      ? "/logo/symbol-white.png"
-      : variant === "dark"
-      ? "/logo/symbol-dark.png"
-      : "/logo/symbol-light.png";
-
-  return (
-    <Image
-      src={src}
-      alt="ShowVibe"
-      width={size}
-      height={height}
-      priority={priority}
-      className={className}
-      style={{ height: "auto", width: size }}
-    />
-  );
-}

@@ -46,6 +46,3 @@ export async function isAllowedByRobots(targetUrl: string): Promise<boolean> {
   }
 }
 
-export function clearRobotsCache(): void {
-  cache.clear()
-}

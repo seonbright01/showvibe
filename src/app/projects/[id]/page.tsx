@@ -20,6 +20,7 @@ import { getLikeCountAndState, getSaveState } from '@/lib/social/queries'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { getSiteById, getSimilarSites } from '@/lib/sites/queries'
 import { getSessionUser } from '@/lib/auth/guards'
+import { serializeJsonLd } from '@/lib/seo/json-ld'
 import type { SourceType, MediaSource } from '@/types'
 
 const UUID_REGEX =
@@ -152,7 +153,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <ViewTracker siteId={id} />
       <main className="flex-1">
