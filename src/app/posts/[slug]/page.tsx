@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import AppShell from '@/components/layout/AppShell'
 import { ProjectCard } from '@/components/project/ProjectCard'
 import { CommentList } from '@/components/comments/CommentList'
@@ -176,7 +177,7 @@ export default async function PostDetailPage({ params }: PageProps) {
             )}
 
             <div className="prose prose-invert max-w-none prose-headings:font-[var(--font-outfit)] prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-3 prose-p:text-[14px] prose-p:text-text-medium prose-p:leading-[1.75] prose-a:text-coral hover:prose-a:text-coral-hover">
-              <ReactMarkdown>{post.bodyMd}</ReactMarkdown>
+              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post.bodyMd}</ReactMarkdown>
             </div>
 
             <section className="mt-12 pt-8 border-t border-stroke">
