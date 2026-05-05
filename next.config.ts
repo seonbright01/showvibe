@@ -18,7 +18,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://storage.googleapis.com https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev",
+      "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://storage.googleapis.com https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev https://api.dicebear.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in https://challenges.cloudflare.com https://api.github.com",
       "frame-src https://challenges.cloudflare.com",
@@ -51,6 +51,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
+        pathname: "/**",
       },
     ],
   },
