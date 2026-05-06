@@ -41,6 +41,7 @@ const SITE_COLUMNS = [
   'editors_note',
   'editors_pick_updated_at',
   'editors_pick_updated_by',
+  'submitted_by_user_id',
 ] as const
 
 type SiteRowKeys = keyof Database['public']['Tables']['sites']['Row']
@@ -94,6 +95,7 @@ interface JoinedRow {
   editors_note?: string | null
   editors_pick_updated_at?: string | null
   editors_pick_updated_by?: string | null
+  submitted_by_user_id?: string | null
   // joined relations
   site_analysis?: unknown
   site_media?: unknown
@@ -128,6 +130,7 @@ function shapeRow(row: JoinedRow): SiteWithRelations {
     editors_note: rest.editors_note ?? null,
     editors_pick_updated_at: rest.editors_pick_updated_at ?? null,
     editors_pick_updated_by: rest.editors_pick_updated_by ?? null,
+    submitted_by_user_id: rest.submitted_by_user_id ?? null,
   }
   const site = mapSiteRow(siteOnly)
 

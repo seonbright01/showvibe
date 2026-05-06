@@ -64,16 +64,13 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
   }
 
   // 보안 (P3.4): 같은 user 가 60초 내 5건 초과 submit 시 reject.
-  // submitted_by_user_id 컬럼은 throttling 마이그레이션에서 추가됨.
-  // 컬럼 누락 시 throttle 쿼리 실패 → best-effort 로 통과 (가용성 우선).
   const SUBMIT_RATE_LIMIT_PER_MIN = 5
   const sinceIso = new Date(Date.now() - 60_000).toISOString()
   try {
-    // 컬럼이 아직 generated types 에 없어서 string-cast filter 사용.
     const { count } = await supabase
       .from('sites')
       .select('id', { count: 'exact', head: true })
-      .eq('submitted_by_user_id' as 'id', user.id)
+      .eq('submitted_by_user_id', user.id)
       .gte('created_at', sinceIso)
     if ((count ?? 0) >= SUBMIT_RATE_LIMIT_PER_MIN) {
       return {
@@ -113,10 +110,9 @@ export async function submitSite(input: unknown): Promise<SubmitSiteResult> {
     is_claimed: false,
     submitted_by_user_id: user.id,
   }
-  // 컬럼이 generated types 에 추가되면 cast 제거 가능.
   const { data: inserted, error } = await supabase
     .from('sites')
-    .insert(insertPayload as Database['public']['Tables']['sites']['Insert'])
+    .insert(insertPayload)
     .select('id')
     .single()
 
