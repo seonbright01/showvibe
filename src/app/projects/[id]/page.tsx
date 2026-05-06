@@ -5,6 +5,10 @@ import type { Metadata } from 'next'
 import AppShell from '@/components/layout/AppShell'
 import { ProjectCard } from '@/components/project/ProjectCard'
 import {
+  SampleOverlay,
+  isOfficialMedia,
+} from '@/components/project/SampleOverlay'
+import {
   StatusBadge,
   SourceBadge,
   ToolBadge,
@@ -194,14 +198,23 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)' }}
               >
                 {media?.imageUrl ? (
-                  <Image
-                    src={media.imageUrl}
-                    alt={`${site.name} screenshot`}
-                    fill
-                    sizes="(min-width: 1024px) 66vw, 100vw"
-                    className={`object-cover ${isArchived ? 'grayscale opacity-50' : ''}`}
-                    priority
-                  />
+                  <>
+                    <Image
+                      src={media.imageUrl}
+                      alt={`${site.name} screenshot`}
+                      fill
+                      sizes="(min-width: 1024px) 66vw, 100vw"
+                      className={`object-cover ${isArchived ? 'grayscale opacity-50' : ''} ${
+                        !isOfficialMedia(site.isClaimed, media?.mediaSource)
+                          ? 'blur-[1px] contrast-90 brightness-95'
+                          : ''
+                      }`}
+                      priority
+                    />
+                    {!isOfficialMedia(site.isClaimed, media?.mediaSource) && (
+                      <SampleOverlay size="lg" />
+                    )}
+                  </>
                 ) : (
                   <div
                     className={`absolute inset-0 flex items-center justify-center ${

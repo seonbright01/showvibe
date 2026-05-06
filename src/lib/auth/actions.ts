@@ -172,8 +172,10 @@ export async function updateProfileAction(
 
   if (error) return { error: error.message }
 
-  revalidatePath('/account')
-  revalidatePath('/account/edit')
-  revalidatePath('/makers')
+  // 사용자 avatar/이름은 거의 모든 페이지(홈/explore/archive/posts/projects 카드 +
+  // makers/[username]/projects/[id]/posts/[slug] 등 동적 라우트)에 노출되므로
+  // layout 단위로 전체 무효화. /makers (목록) 단독 무효화로는 /makers/[username]
+  // 동적 라우트가 stale 유지되어 변경분이 반영되지 않는다.
+  revalidatePath('/', 'layout')
   return { success: true }
 }

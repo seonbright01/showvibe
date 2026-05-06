@@ -7,6 +7,7 @@ import type { Site, SiteAnalysis, SiteMedia, User } from '@/types'
 import { StatusBadge, SourceBadge, ToolBadge } from '@/components/ui/Badge'
 import { LikeButton } from '@/components/sites/LikeButton'
 import { SaveButton } from '@/components/sites/SaveButton'
+import { SampleOverlay, isOfficialMedia } from './SampleOverlay'
 
 interface ProjectCardProps {
   site: Site
@@ -62,6 +63,8 @@ export function ProjectCard({
   const isArchived = site.status === 'archived'
   const thumbnailUrl = media?.imageUrl ?? null
   const toolName = analysis?.toolGuess ?? site.sourcePlatform
+  const isOfficial = isOfficialMedia(site.isClaimed, media?.mediaSource)
+  const showSample = Boolean(thumbnailUrl) && !isOfficial
 
   return (
     <div
@@ -82,13 +85,17 @@ export function ProjectCard({
             fill
             className={`object-cover transition-all ${
               isArchived ? 'grayscale opacity-50' : ''
-            } ${isHovered && !isArchived ? 'brightness-75' : ''}`}
+            } ${isHovered && !isArchived ? 'brightness-75' : ''} ${
+              showSample ? 'blur-[1px] contrast-90 brightness-95' : ''
+            }`}
           />
         ) : (
           <div className={isArchived ? 'grayscale opacity-50' : ''}>
             <GradientPlaceholder name={site.name} />
           </div>
         )}
+
+        {showSample && <SampleOverlay size="sm" />}
 
         <Link
           href={`/projects/${site.id}`}
