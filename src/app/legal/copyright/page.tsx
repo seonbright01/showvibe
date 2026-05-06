@@ -245,13 +245,6 @@ export default function CopyrightPage() {
                 <li>회사명·사업자등록번호·대표자: (사업자 등록 후 게시 예정)</li>
               </ul>
             </section>
-
-            <section className="mt-10 pt-6 border-t border-stroke">
-              <p className="text-sm text-text-muted italic">
-                본 정책은 외부 법무 검토 전 임시본이며, 사업자 등록 및 정식
-                법무 자문 후 정식판으로 업데이트됩니다.
-              </p>
-            </section>
           </div>
         </article>
       </main>
