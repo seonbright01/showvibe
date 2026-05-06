@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import { AvatarImage } from '@/components/ui/AvatarImage'
 import AppShell from '@/components/layout/AppShell'
 import { getMakers, type MakerWithStats } from '@/lib/makers/queries'
 
@@ -23,18 +23,12 @@ function MakerCard({ entry }: { entry: MakerWithStats }) {
       className="group rounded-xl border border-stroke bg-bg-surface p-4 transition-shadow hover:shadow-lg hover:border-coral/30"
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative w-20 h-20 rounded-full overflow-hidden bg-bg-elevated border border-stroke mb-3">
-          {entry.user.avatarUrl && (
-            <Image
-              src={entry.user.avatarUrl}
-              alt={`${entry.user.name} avatar`}
-              fill
-              sizes="80px"
-              className="object-cover"
-              unoptimized
-            />
-          )}
-        </div>
+        <AvatarImage
+          avatarUrl={entry.user.avatarUrl}
+          name={entry.user.name}
+          size={80}
+          className="border border-stroke mb-3"
+        />
         <h3 className="text-[14px] font-semibold text-text-high mb-1">
           {entry.user.name}
         </h3>

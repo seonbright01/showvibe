@@ -3,7 +3,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import { AvatarImage } from '@/components/ui/AvatarImage'
 import { notFound } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
 import { ProjectCard } from '@/components/project/ProjectCard'
@@ -67,18 +67,12 @@ export default async function MakerProfilePage({ params }: PageProps) {
         <section className="border-b border-stroke">
           <div className="mx-auto max-w-[1200px] px-6 py-12 lg:py-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden bg-bg-elevated border border-stroke shrink-0">
-                {maker.user.avatarUrl && (
-                  <Image
-                    src={maker.user.avatarUrl}
-                    alt={`${maker.user.name} avatar`}
-                    fill
-                    sizes="128px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                )}
-              </div>
+              <AvatarImage
+                avatarUrl={maker.user.avatarUrl}
+                name={maker.user.name}
+                size={128}
+                className="border border-stroke shrink-0"
+              />
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
