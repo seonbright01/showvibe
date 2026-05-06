@@ -12,10 +12,13 @@ const GRAIN_SVG =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>\")"
 
 export function SampleOverlay({ size = 'sm' }: SampleOverlayProps) {
+  // 크기는 이전 디자인의 절반 (사용자 요청).
   const textClass =
     size === 'lg'
-      ? 'text-7xl md:text-8xl'
-      : 'text-3xl sm:text-4xl md:text-5xl'
+      ? 'text-4xl md:text-5xl'
+      : 'text-xl sm:text-2xl md:text-2xl'
+  const subtitleClass =
+    size === 'lg' ? 'text-sm md:text-base' : 'text-[10px] sm:text-xs'
 
   return (
     <>
@@ -33,19 +36,24 @@ export function SampleOverlay({ size = 'sm' }: SampleOverlayProps) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-black/15"
       />
-      {/* 'sample' 워터마크 — 중앙, 회전, 두꺼운 글자 */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {/* 'sample' 워터마크 + 보조 문구 — 중앙, 회전 없음, Outfit 폰트 */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
         <span
           aria-hidden="true"
-          className={`select-none font-black uppercase tracking-[0.25em] text-white/55 ${textClass}`}
+          className={`select-none font-bold uppercase tracking-widest text-white/60 font-[family-name:var(--font-outfit)] ${textClass}`}
           style={{
-            transform: 'rotate(-15deg)',
             textShadow:
-              '0 2px 16px rgba(0,0,0,0.55), 0 0 4px rgba(0,0,0,0.4)',
-            WebkitTextStroke: '1px rgba(0,0,0,0.3)',
+              '0 2px 12px rgba(0,0,0,0.5), 0 0 4px rgba(0,0,0,0.4)',
           }}
         >
           sample
+        </span>
+        <span
+          aria-hidden="true"
+          className={`select-none uppercase tracking-[0.3em] text-white/45 font-medium font-[family-name:var(--font-outfit)] ${subtitleClass}`}
+          style={{ textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}
+        >
+          for reference only
         </span>
       </div>
     </>
