@@ -58,6 +58,11 @@ export function AdSlot({ slot, className, size }: AdSlotProps) {
   const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
   const slotId = process.env[config.envSlotKey]
   const isReady = Boolean(pubId && slotId)
+  // master toggle — 광고 부착 전(베타) 단계에서는 슬롯 자체를 렌더하지 않는다.
+  // 미래에 광고 도입 시 NEXT_PUBLIC_ADS_ENABLED=true 만 설정하면 호출처 코드 변경
+  // 없이 슬롯이 다시 활성화된다.
+  const adsEnabled = process.env.NEXT_PUBLIC_ADS_ENABLED === 'true'
+  if (!adsEnabled) return null
 
   useEffect(() => {
     if (!isReady) return

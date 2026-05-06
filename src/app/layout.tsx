@@ -96,6 +96,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const adsensePubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID;
+  // master toggle — AdSlot 컴포넌트와 동일한 분기를 layout 단계에서도 적용해
+  // 베타 단계에서는 AdSense 로더 자체를 로드하지 않는다.
+  const adsEnabled = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
 
   return (
     <html
@@ -104,7 +107,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-bg-base text-text-high">
         {children}
-        {adsensePubId && (
+        {adsEnabled && adsensePubId && (
           <Script
             id="adsense-loader"
             async
