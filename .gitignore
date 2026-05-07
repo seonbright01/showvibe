@@ -48,7 +48,10 @@ next-env.d.ts
 .claude/worktrees/
 
 # internal planning docs (kept local, not for public repo)
-docs/
+docs/*
+# ...except magazine drafts which the daily routine reads/writes
+!docs/drafts/
+!docs/drafts/**
 
 # pipeline data dumps (candidate snapshots, not source)
 tmp/*
